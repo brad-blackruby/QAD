@@ -6,10 +6,10 @@
  OFFSET command to create offset of an object
  
                               -------------------
-        begin                : 2013-10-04
-        copyright            : iiiii
-        email                : hhhhh
-        developers           : bbbbb aaaaa ggggg
+        begin                : 2025-05-07
+        copyright            : GPL
+        email                : brad@blackruby.dev
+        developers           : Brad, ClaudeAI
  ***************************************************************************/
 
 /***************************************************************************
