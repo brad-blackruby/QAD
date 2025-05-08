@@ -3,13 +3,13 @@
 /***************************************************************************
  QAD Quantum Aided Design plugin OK
 
- comando ARC per disegnare un arco
+ ARC command to draw an arc
  
                               -------------------
-        begin                : 2013-05-22
+        begin                : 2025-05-07
         copyright            : iiiii
-        email                : hhhhh
-        developers           : bbbbb aaaaa ggggg
+        email                : brad@blackruby.dev
+        developers           : Brad, ClaudeAI
  ***************************************************************************/
 
 /***************************************************************************
@@ -42,11 +42,11 @@ from ..qad_grip import QadGripStatusEnum
 from ..qad_dim import QadDimStyles
 
 
-# Classe che gestisce il comando ARC
+# Class that manages the ARC command
 class QadARCCommandClass(QadCommandClass):
 
    def instantiateNewCmd(self):
-      """ istanzia un nuovo comando dello stesso tipo """
+      """ instantiates a new command of the same type """
       return QadARCCommandClass(self.plugIn)
    
    def getName(self):
@@ -62,7 +62,7 @@ class QadARCCommandClass(QadCommandClass):
       return QIcon(":/plugins/qad/icons/arc.svg")
 
    def getNote(self):
-      # impostare le note esplicative del comando      
+      # set the explanatory notes of the command      
       return QadMsg.translate("Command_ARC", "Draws an arc by many methods.")
    
    def __init__(self, plugIn):
@@ -78,21 +78,21 @@ class QadARCCommandClass(QadCommandClass):
          return None
          
    def run(self, msgMapTool = False, msg = None):
-      self.isValidPreviousInput = True # per gestire il comando anche in macro
+      self.isValidPreviousInput = True # to manage the command also in macro
            
       if self.plugIn.canvas.mapSettings().destinationCrs().isGeographic():
          self.showMsg(QadMsg.translate("QAD", "\nThe coordinate reference system of the project must be a projected coordinate system.\n"))
-         return True # fine comando
+         return True # end command
       
       currLayer, errMsg = qad_layer.getCurrLayerEditable(self.plugIn.canvas, QgsWkbTypes.LineGeometry)
       if currLayer is None:
          self.showErr(errMsg)
-         return True # fine comando
+         return True # end command
 
       # =========================================================================
-      # RICHIESTA PRIMO PUNTO o CENTRO
-      if self.step == 0: # inizio del comando
-         # imposto il map tool
+      # REQUEST FIRST POINT or CENTER
+      if self.step == 0: # beginning of the command
+         # set the map tool
          self.getPointMapTool().setMode(Qad_arc_maptool_ModeEnum.NONE_KNOWN_ASK_FOR_START_PT)
          keyWords = QadMsg.translate("Command_ARC", "Center")
          
@@ -100,8 +100,8 @@ class QadARCCommandClass(QadCommandClass):
          
          englishKeyWords = "Center"
          keyWords += "_" + englishKeyWords
-         # si appresta ad attendere un punto o enter o una parola chiave         
-         # msg, inputType, default, keyWords, nessun controllo di modo
+         # prepares to wait for a point or enter or a keyword         
+         # msg, inputType, default, keyWords, no mode check
          self.waitFor(prompt, \
                       QadInputTypeEnum.POINT2D | QadInputTypeEnum.KEYWORDS, \
                       None, \
@@ -111,35 +111,35 @@ class QadARCCommandClass(QadCommandClass):
          return False
 
       # =========================================================================
-      # RISPOSTA ALLA RICHIESTA PRIMO PUNTO o CENTRO
-      elif self.step == 1: # dopo aver atteso un punto o enter o una parola chiave si riavvia il comando
-         if msgMapTool == True: # il punto arriva da una selezione grafica
-            # la condizione seguente si verifica se durante la selezione di un punto
-            # é stato attivato un altro plugin che ha disattivato Qad
-            # quindi stato riattivato il comando che torna qui senza che il maptool
-            # abbia selezionato un punto            
-            if self.getPointMapTool().point is None: # il maptool é stato attivato senza un punto
-               if self.getPointMapTool().rightButton == True: # se usato il tasto destro del mouse
-                  return True # fine comando
+      # RESPONSE TO REQUEST FIRST POINT or CENTER
+      elif self.step == 1: # after waiting for a point or enter or a keyword, the command is restarted
+         if msgMapTool == True: # the point comes from a graphic selection
+            # the following condition occurs if while selecting a point
+            # another plugin has been activated that has deactivated Qad
+            # then the command has been reactivated that returns here without the maptool
+            # having selected a point            
+            if self.getPointMapTool().point is None: # the maptool has been activated without a point
+               if self.getPointMapTool().rightButton == True: # if the right mouse button was used
+                  return True # end command
                else:
-                  self.setMapTool(self.getPointMapTool()) # riattivo il maptool
+                  self.setMapTool(self.getPointMapTool()) # reactivate the maptool
                   return False
 
             value = self.getPointMapTool().point
-         else: # il punto arriva come parametro della funzione
+         else: # the point comes as a parameter of the function
             value = msg
 
          if value is None:
             if self.plugIn.lastPoint is not None:
                value = self.plugIn.lastPoint
             else:
-               return True # fine comando
+               return True # end command
 
-         if type(value) == QgsPointXY: # se é stato inserito il punto iniziale dell'arco           
+         if type(value) == QgsPointXY: # if the initial point of the arc has been entered           
             self.startPt = value
             self.plugIn.setLastPoint(value)
             
-            # imposto il map tool
+            # set the map tool
             self.getPointMapTool().arcStartPt = self.startPt
             self.getPointMapTool().setMode(Qad_arc_maptool_ModeEnum.START_PT_KNOWN_ASK_FOR_SECOND_PT)
                                 
@@ -150,7 +150,7 @@ class QadARCCommandClass(QadCommandClass):
             
             englishKeyWords = "Center" + "/" + "End"
             keyWords += "_" + englishKeyWords
-            # si appresta ad attendere un punto o una parola chiave         
+            # prepares to wait for a point or a keyword         
             # msg, inputType, default, keyWords
             self.waitFor(prompt, \
                          QadInputTypeEnum.POINT2D | QadInputTypeEnum.KEYWORDS, \
@@ -159,76 +159,76 @@ class QadARCCommandClass(QadCommandClass):
             
             self.step = 2
             return False
-         else: # si vuole inserire il centro dell'arco
-            # imposto il map tool
+         else: # you want to enter the center of the arc
+            # set the map tool
             self.getPointMapTool().setMode(Qad_arc_maptool_ModeEnum.NONE_KNOWN_ASK_FOR_CENTER_PT)
-            # si appresta ad attendere un punto
+            # prepares to wait for a point
             self.waitForPoint(QadMsg.translate("Command_ARC", "Specify the center of the arc: "))
             
             self.step = 13
             return False
 
       # =========================================================================
-      # RISPOSTA ALLA RICHIESTA SECONDO PUNTO o CENTRO o FINE
-      elif self.step == 2: # dopo aver atteso un punto o una parola chiave si riavvia il comando
-         if msgMapTool == True: # il punto arriva da una selezione grafica
-            # la condizione seguente si verifica se durante la selezione di un punto
-            # é stato attivato un altro plugin che ha disattivato Qad
-            # quindi stato riattivato il comando che torna qui senza che il maptool
-            # abbia selezionato un punto            
-            if self.getPointMapTool().point is None: # il maptool é stato attivato senza un punto
-               if self.getPointMapTool().rightButton == True: # se usato il tasto destro del mouse
-                  return True # fine comando
+      # RESPONSE TO REQUEST SECOND POINT or CENTER or END
+      elif self.step == 2: # after waiting for a point or a keyword, the command is restarted
+         if msgMapTool == True: # the point comes from a graphic selection
+            # the following condition occurs if while selecting a point
+            # another plugin has been activated that has deactivated Qad
+            # then the command has been reactivated that returns here without the maptool
+            # having selected a point            
+            if self.getPointMapTool().point is None: # the maptool has been activated without a point
+               if self.getPointMapTool().rightButton == True: # if the right mouse button was used
+                  return True # end command
                else:
-                  self.setMapTool(self.getPointMapTool()) # riattivo il maptool
+                  self.setMapTool(self.getPointMapTool()) # reactivate the maptool
                   return False
 
             value = self.getPointMapTool().point
-         else: # il punto arriva come parametro della funzione
+         else: # the point comes as a parameter of the function
             value = msg
 
          if type(value) == unicode:
             if value == QadMsg.translate("Command_ARC", "Center") or value == "Center":
-               # imposto il map tool
+               # set the map tool
                self.getPointMapTool().setMode(Qad_arc_maptool_ModeEnum.START_PT_KNOWN_ASK_FOR_CENTER_PT)
-               # si appresta ad attendere un punto
+               # prepares to wait for a point
                self.waitForPoint(QadMsg.translate("Command_ARC", "Specify the center of the arc: "))
                self.step = 4           
             elif value == QadMsg.translate("Command_ARC", "End") or value == "End":
-               # imposto il map tool
+               # set the map tool
                self.getPointMapTool().setMode(Qad_arc_maptool_ModeEnum.START_PT_KNOWN_ASK_FOR_END_PT)
-               # si appresta ad attendere un punto
+               # prepares to wait for a point
                self.waitForPoint(QadMsg.translate("Command_ARC", "Specify the final point of the arc: "))
                self.step = 8     
-         elif type(value) == QgsPointXY: # se é stato inserito il secondo punto dell'arco            
+         elif type(value) == QgsPointXY: # if the second point of the arc has been entered            
             self.secondPt = value
-            # imposto il map tool
+            # set the map tool
             self.getPointMapTool().arcSecondPt = self.secondPt
             self.getPointMapTool().setMode(Qad_arc_maptool_ModeEnum.START_SECOND_PT_KNOWN_ASK_FOR_END_PT)
 
-            # si appresta ad attendere un punto
+            # prepares to wait for a point
             self.waitForPoint(QadMsg.translate("Command_ARC", "Specify the final point of the arc: "))
             self.step = 3
                   
          return False
 
       # =========================================================================
-      # RISPOSTA ALLA RICHIESTA PUNTO FINALE DELL'ARCO (da step = 2)
-      elif self.step == 3: # dopo aver atteso un punto si riavvia il comando
-         if msgMapTool == True: # il punto arriva da una selezione grafica
-            # la condizione seguente si verifica se durante la selezione di un punto
-            # é stato attivato un altro plugin che ha disattivato Qad
-            # quindi stato riattivato il comando che torna qui senza che il maptool
-            # abbia selezionato un punto            
-            if self.getPointMapTool().point is None: # il maptool é stato attivato senza un punto
-               if self.getPointMapTool().rightButton == True: # se usato il tasto destro del mouse
-                  return True # fine comando
+      # RESPONSE TO REQUEST FINAL POINT OF THE ARC (from step = 2)
+      elif self.step == 3: # after waiting for a point, the command is restarted
+         if msgMapTool == True: # the point comes from a graphic selection
+            # the following condition occurs if while selecting a point
+            # another plugin has been activated that has deactivated Qad
+            # then the command has been reactivated that returns here without the maptool
+            # having selected a point            
+            if self.getPointMapTool().point is None: # the maptool has been activated without a point
+               if self.getPointMapTool().rightButton == True: # if the right mouse button was used
+                  return True # end command
                else:
-                  self.setMapTool(self.getPointMapTool()) # riattivo il maptool
+                  self.setMapTool(self.getPointMapTool()) # reactivate the maptool
                   return False
 
             value = self.getPointMapTool().point
-         else: # il punto arriva come parametro della funzione
+         else: # the point comes as a parameter of the function
             value = msg
 
          self.endPt = value
@@ -238,7 +238,7 @@ class QadARCCommandClass(QadCommandClass):
             self.plugIn.setLastPoint(arc.getEndPt())
             geom = arc.asGeom(currLayer.wkbType())
             if geom is not None:
-               # se i punti sono così vicini da essere considerati uguali
+               # if the points are so close to be considered equal
                if qad_utils.ptNear(self.startPt, arc.getStartPt()):
                   self.plugIn.setLastSegmentAng(arc.getTanDirectionOnEndPt())
                else:
@@ -247,36 +247,36 @@ class QadARCCommandClass(QadCommandClass):
                self.getPointMapTool().setPolarAngOffset(self.plugIn.lastSegmentAng)
                
                qad_layer.addGeomToLayer(self.plugIn, currLayer, self.mapToLayerCoordinates(currLayer, geom))
-               return True # fine comando
+               return True # end command
       
-         # si appresta ad attendere un punto
+         # prepares to wait for a point
          self.waitForPoint(QadMsg.translate("Command_ARC", "Specify the final point of the arc: "))
-         self.isValidPreviousInput = False # per gestire il comando anche in macro     
+         self.isValidPreviousInput = False # to manage the command also in macro     
          return False
       
       # =========================================================================
-      # RISPOSTA ALLA RICHIESTA CENTRO DELL'ARCO (da step = 2)
-      elif self.step == 4: # dopo aver atteso un punto si riavvia il comando
-         if msgMapTool == True: # il punto arriva da una selezione grafica
-            # la condizione seguente si verifica se durante la selezione di un punto
-            # é stato attivato un altro plugin che ha disattivato Qad
-            # quindi stato riattivato il comando che torna qui senza che il maptool
-            # abbia selezionato un punto            
-            if self.getPointMapTool().point is None: # il maptool é stato attivato senza un punto
-               if self.getPointMapTool().rightButton == True: # se usato il tasto destro del mouse
-                  return True # fine comando
+      # RESPONSE TO REQUEST CENTER OF THE ARC (from step = 2)
+      elif self.step == 4: # after waiting for a point, the command is restarted
+         if msgMapTool == True: # the point comes from a graphic selection
+            # the following condition occurs if while selecting a point
+            # another plugin has been activated that has deactivated Qad
+            # then the command has been reactivated that returns here without the maptool
+            # having selected a point            
+            if self.getPointMapTool().point is None: # the maptool has been activated without a point
+               if self.getPointMapTool().rightButton == True: # if the right mouse button was used
+                  return True # end command
                else:
-                  self.setMapTool(self.getPointMapTool()) # riattivo il maptool
+                  self.setMapTool(self.getPointMapTool()) # reactivate the maptool
                   return False
                
             value = self.getPointMapTool().point
-         else: # il punto arriva come parametro della funzione
+         else: # the point comes as a parameter of the function
             value = msg
 
          self.centerPt = value
          self.plugIn.setLastPoint(value)
          
-         # imposto il map tool
+         # set the map tool
          self.getPointMapTool().arcCenterPt = self.centerPt
          self.getPointMapTool().setMode(Qad_arc_maptool_ModeEnum.START_CENTER_PT_KNOWN_ASK_FOR_END_PT)
          
@@ -287,8 +287,8 @@ class QadARCCommandClass(QadCommandClass):
                          
          englishKeyWords = "Angle" + "/" + "chord Length"
          keyWords += "_" + englishKeyWords
-         # si appresta ad attendere un punto o una parola chiave         
-         # msg, inputType, default, keyWords, valori nulli non ammessi
+         # prepares to wait for a point or a keyword         
+         # msg, inputType, default, keyWords, null values not allowed
          self.waitFor(prompt, \
                       QadInputTypeEnum.POINT2D | QadInputTypeEnum.KEYWORDS, \
                       None, \
@@ -298,32 +298,32 @@ class QadARCCommandClass(QadCommandClass):
          return False
       
       # =========================================================================
-      # RISPOSTA ALLA RICHIESTA "Specificare punto finale dell'arco o [Angolo/Lunghezza corda]: " (da step = 4)
-      elif self.step == 5: # dopo aver atteso un punto o una parola chiave si riavvia il comando
-         if msgMapTool == True: # il punto arriva da una selezione grafica
-            # la condizione seguente si verifica se durante la selezione di un punto
-            # é stato attivato un altro plugin che ha disattivato Qad
-            # quindi stato riattivato il comando che torna qui senza che il maptool
-            # abbia selezionato un punto            
-            if self.getPointMapTool().point is None: # il maptool é stato attivato senza un punto
-               if self.getPointMapTool().rightButton == True: # se usato il tasto destro del mouse
-                  return True # fine comando
+      # RESPONSE TO REQUEST "Specify final point of the arc or [Angle/chord Length]: " (from step = 4)
+      elif self.step == 5: # after waiting for a point or a keyword, the command is restarted
+         if msgMapTool == True: # the point comes from a graphic selection
+            # the following condition occurs if while selecting a point
+            # another plugin has been activated that has deactivated Qad
+            # then the command has been reactivated that returns here without the maptool
+            # having selected a point            
+            if self.getPointMapTool().point is None: # the maptool has been activated without a point
+               if self.getPointMapTool().rightButton == True: # if the right mouse button was used
+                  return True # end command
                else:
-                  self.setMapTool(self.getPointMapTool()) # riattivo il maptool
+                  self.setMapTool(self.getPointMapTool()) # reactivate the maptool
                   return False
 
             value = self.getPointMapTool().point
             ctrlPressed = self.getPointMapTool().ctrlKey
-         else: # il punto arriva come parametro della funzione
+         else: # the point comes as a parameter of the function
             value = msg
             ctrlPressed = False
 
          if type(value) == unicode:  
             if value == QadMsg.translate("Command_ARC", "Angle") or value == "Angle":
-               # imposto il map tool
+               # set the map tool
                self.getPointMapTool().setMode(Qad_arc_maptool_ModeEnum.START_CENTER_PT_KNOWN_ASK_FOR_ANGLE)
-               # si appresta ad attendere un punto o un numero reale         
-               # msg, inputType, default, keyWords, valori nulli non ammessi
+               # prepares to wait for a point or a real number         
+               # msg, inputType, default, keyWords, null values not allowed
                self.waitFor(QadMsg.translate("Command_ARC", "Specify the included angle (hold Ctrl to switch direction): "), \
                             QadInputTypeEnum.POINT2D | QadInputTypeEnum.ANGLE, \
                             None, "", \
@@ -331,29 +331,29 @@ class QadARCCommandClass(QadCommandClass):
                self.step = 6
                return False                              
             elif value == QadMsg.translate("Command_ARC", "chord Length") or value == "chord Length":
-               # imposto il map tool
+               # set the map tool
                self.getPointMapTool().setMode(Qad_arc_maptool_ModeEnum.START_CENTER_PT_KNOWN_ASK_FOR_CHORD)
-               # si appresta ad attendere un punto o un numero reale         
-               # msg, inputType, default, keyWords, valori positivi
+               # prepares to wait for a point or a real number         
+               # msg, inputType, default, keyWords, positive values
                self.waitFor(QadMsg.translate("Command_ARC", "Specify the chord length (hold Ctrl to switch direction): "), \
                             QadInputTypeEnum.POINT2D | QadInputTypeEnum.FLOAT, \
                             None, "", \
                             QadInputModeEnum.NOT_NULL | QadInputModeEnum.NOT_ZERO | QadInputModeEnum.NOT_NEGATIVE)
                self.step = 7
                return False                              
-         elif type(value) == QgsPointXY: # se é stato inserito il punto finale dell'arco
+         elif type(value) == QgsPointXY: # if the end point of the arc has been entered
             self.endPt = value
                      
             arc = QadArc()
             if arc.fromStartCenterEndPts(self.startPt, self.centerPt, self.endPt) == True:
-               if ctrlPressed: # inverto angolo iniziale-finale
+               if ctrlPressed: # invert initial-final angle
                   arc.inverseAngles()
                
                self.plugIn.setLastPoint(arc.getEndPt())
 
                geom = arc.asGeom(currLayer.wkbType())
                if geom is not None:
-                  # se i punti sono così vicini da essere considerati uguali
+                  # if the points are so close to be considered equal
                   if qad_utils.ptNear(self.startPt, arc.getStartPt()):
                      self.plugIn.setLastSegmentAng(arc.getTanDirectionOnEndPt())
                   else:
@@ -362,7 +362,7 @@ class QadARCCommandClass(QadCommandClass):
                   self.getPointMapTool().setPolarAngOffset(self.plugIn.lastSegmentAng)
                   
                   qad_layer.addGeomToLayer(self.plugIn, currLayer, self.mapToLayerCoordinates(currLayer, geom))
-                  return True # fine comando
+                  return True # end command
                            
             keyWords = QadMsg.translate("Command_ARC", "Angle") + "/" + \
                        QadMsg.translate("Command_ARC", "chord Length")
@@ -370,33 +370,33 @@ class QadARCCommandClass(QadCommandClass):
 
             englishKeyWords = "Angle" + "/" + "chord Length"
             keyWords += "_" + englishKeyWords
-            # si appresta ad attendere un punto o una parola chiave         
-            # msg, inputType, default, keyWords, valori nulli non ammessi
+            # prepares to wait for a point or a keyword         
+            # msg, inputType, default, keyWords, null values not allowed
             self.waitFor(prompt, \
                          QadInputTypeEnum.POINT2D | QadInputTypeEnum.KEYWORDS, \
                          None, \
                          keyWords, QadInputModeEnum.NOT_NULL)
-            self.isValidPreviousInput = False # per gestire il comando anche in macro
+            self.isValidPreviousInput = False # to manage the command also in macro
             return False
       
       # =========================================================================
-      # RISPOSTA ALLA RICHIESTA "Specificare angolo inscritto: " (da step = 5)
-      elif self.step == 6: # dopo aver atteso un punto o un numero reale si riavvia il comando
-         if msgMapTool == True: # il punto arriva da una selezione grafica
-            # la condizione seguente si verifica se durante la selezione di un punto
-            # é stato attivato un altro plugin che ha disattivato Qad
-            # quindi stato riattivato il comando che torna qui senza che il maptool
-            # abbia selezionato un punto            
-            if self.getPointMapTool().point is None: # il maptool é stato attivato senza un punto
-               if self.getPointMapTool().rightButton == True: # se usato il tasto destro del mouse
-                  return True # fine comando
+      # RESPONSE TO REQUEST "Specify included angle: " (from step = 5)
+      elif self.step == 6: # after waiting for a point or a real number, the command is restarted
+         if msgMapTool == True: # the point comes from a graphic selection
+            # the following condition occurs if while selecting a point
+            # another plugin has been activated that has deactivated Qad
+            # then the command has been reactivated that returns here without the maptool
+            # having selected a point            
+            if self.getPointMapTool().point is None: # the maptool has been activated without a point
+               if self.getPointMapTool().rightButton == True: # if the right mouse button was used
+                  return True # end command
                else:
-                  self.setMapTool(self.getPointMapTool()) # riattivo il maptool
+                  self.setMapTool(self.getPointMapTool()) # reactivate the maptool
                   return False
 
             value = self.getPointMapTool().point
             ctrlPressed = self.getPointMapTool().ctrlKey
-         else: # il punto arriva come parametro della funzione
+         else: # the point comes as a parameter of the function
             value = msg
             ctrlPressed = False
 
@@ -407,13 +407,13 @@ class QadARCCommandClass(QadCommandClass):
 
          arc = QadArc()         
          if arc.fromStartCenterPtsAngle(self.startPt, self.centerPt, self.angle) == True:
-            if ctrlPressed: # inverto angolo iniziale-finale
+            if ctrlPressed: # invert initial-final angle
                arc.inverseAngles()
                
             self.plugIn.setLastPoint(arc.getEndPt())
             geom = arc.asGeom(currLayer.wkbType())
             if geom is not None:
-               # se i punti sono così vicini da essere considerati uguali
+               # if the points are so close to be considered equal
                if qad_utils.ptNear(self.startPt, arc.getStartPt()):
                   self.plugIn.setLastSegmentAng(arc.getTanDirectionOnEndPt())
                else:
@@ -422,36 +422,36 @@ class QadARCCommandClass(QadCommandClass):
                self.getPointMapTool().setPolarAngOffset(self.plugIn.lastSegmentAng)
                
                qad_layer.addGeomToLayer(self.plugIn, currLayer, self.mapToLayerCoordinates(currLayer, geom))
-               return True # fine comando
+               return True # end command
             
-         # si appresta ad attendere un punto o un numero reale         
-         # msg, inputType, default, keyWords, valori nulli non ammessi
+         # prepares to wait for a point or a real number         
+         # msg, inputType, default, keyWords, null values not allowed
          self.waitFor(QadMsg.translate("Command_ARC", "Specify the included angle (hold Ctrl to switch direction): "), \
                       QadInputTypeEnum.POINT2D | QadInputTypeEnum.ANGLE, \
                       None, "", \
                       QadInputModeEnum.NOT_NULL | QadInputModeEnum.NOT_ZERO)
-         self.isValidPreviousInput = False # per gestire il comando anche in macro         
+         self.isValidPreviousInput = False # to manage the command also in macro         
          return False
 
       
       # =========================================================================
-      # RISPOSTA ALLA RICHIESTA "Specificare lunghezza della corda: " (da step = 5)
-      elif self.step == 7: # dopo aver atteso un punto o un numero reale si riavvia il comando
-         if msgMapTool == True: # il punto arriva da una selezione grafica
-            # la condizione seguente si verifica se durante la selezione di un punto
-            # é stato attivato un altro plugin che ha disattivato Qad
-            # quindi stato riattivato il comando che torna qui senza che il maptool
-            # abbia selezionato un punto            
-            if self.getPointMapTool().point is None: # il maptool é stato attivato senza un punto
-               if self.getPointMapTool().rightButton == True: # se usato il tasto destro del mouse
-                  return True # fine comando
+      # RESPONSE TO REQUEST "Specify chord length: " (from step = 5)
+      elif self.step == 7: # after waiting for a point or a real number, the command is restarted
+         if msgMapTool == True: # the point comes from a graphic selection
+            # the following condition occurs if while selecting a point
+            # another plugin has been activated that has deactivated Qad
+            # then the command has been reactivated that returns here without the maptool
+            # having selected a point            
+            if self.getPointMapTool().point is None: # the maptool has been activated without a point
+               if self.getPointMapTool().rightButton == True: # if the right mouse button was used
+                  return True # end command
                else:
-                  self.setMapTool(self.getPointMapTool()) # riattivo il maptool
+                  self.setMapTool(self.getPointMapTool()) # reactivate the maptool
                   return False
 
             value = self.getPointMapTool().point
             ctrlPressed = self.getPointMapTool().ctrlKey
-         else: # il punto arriva come parametro della funzione
+         else: # the point comes as a parameter of the function
             value = msg
             ctrlPressed = False
 
@@ -462,13 +462,13 @@ class QadARCCommandClass(QadCommandClass):
 
          arc = QadArc()         
          if arc.fromStartCenterPtsChord(self.startPt, self.centerPt, self.chord) == True:
-            if ctrlPressed: # inverto angolo iniziale-finale
+            if ctrlPressed: # invert initial-final angle
                arc.inverseAngles()
 
             self.plugIn.setLastPoint(arc.getEndPt())
             geom = arc.asGeom(currLayer.wkbType())
             if geom is not None:
-               # se i punti sono così vicini da essere considerati uguali
+               # if the points are so close to be considered equal
                if qad_utils.ptNear(self.startPt, arc.getStartPt()):
                   self.plugIn.setLastSegmentAng(arc.getTanDirectionOnEndPt())
                else:
@@ -477,40 +477,40 @@ class QadARCCommandClass(QadCommandClass):
                self.getPointMapTool().setPolarAngOffset(self.plugIn.lastSegmentAng)
                
                qad_layer.addGeomToLayer(self.plugIn, currLayer, self.mapToLayerCoordinates(currLayer, geom))
-               return True # fine comando
+               return True # end command
 
-         # si appresta ad attendere un punto o un numero reale         
-         # msg, inputType, default, keyWords, valori positivi ammessi
+         # prepares to wait for a point or a real number         
+         # msg, inputType, default, keyWords, positive values allowed
          self.waitFor(QadMsg.translate("Command_ARC", "Specify the chord length (hold Ctrl to switch direction): "), \
                       QadInputTypeEnum.POINT2D | QadInputTypeEnum.FLOAT, \
                       None, "", \
                       QadInputModeEnum.NOT_NULL | QadInputModeEnum.NOT_ZERO | QadInputModeEnum.NOT_NEGATIVE)
-         self.isValidPreviousInput = False # per gestire il comando anche in macro         
+         self.isValidPreviousInput = False # to manage the command also in macro         
          return False
                  
       # =========================================================================
-      # RISPOSTA ALLA RICHIESTA "Specificare punto finale dell'arco: " (da step = 1)
-      elif self.step == 8: # dopo aver atteso un punto si riavvia il comando
-         if msgMapTool == True: # il punto arriva da una selezione grafica
-            # la condizione seguente si verifica se durante la selezione di un punto
-            # é stato attivato un altro plugin che ha disattivato Qad
-            # quindi stato riattivato il comando che torna qui senza che il maptool
-            # abbia selezionato un punto            
-            if self.getPointMapTool().point is None: # il maptool é stato attivato senza un punto
-               if self.getPointMapTool().rightButton == True: # se usato il tasto destro del mouse
-                  return True # fine comando
+      # RESPONSE TO REQUEST "Specify final point of the arc: " (from step = 1)
+      elif self.step == 8: # after waiting for a point, the command is restarted
+         if msgMapTool == True: # the point comes from a graphic selection
+            # the following condition occurs if while selecting a point
+            # another plugin has been activated that has deactivated Qad
+            # then the command has been reactivated that returns here without the maptool
+            # having selected a point            
+            if self.getPointMapTool().point is None: # the maptool has been activated without a point
+               if self.getPointMapTool().rightButton == True: # if the right mouse button was used
+                  return True # end command
                else:
-                  self.setMapTool(self.getPointMapTool()) # riattivo il maptool
+                  self.setMapTool(self.getPointMapTool()) # reactivate the maptool
                   return False
 
             value = self.getPointMapTool().point
-         else: # il punto arriva come parametro della funzione
+         else: # the point comes as a parameter of the function
             value = msg
 
          self.endPt = value
          self.plugIn.setLastPoint(self.endPt)
 
-         # imposto il map tool
+         # set the map tool
          self.getPointMapTool().arcEndPt = self.endPt
          self.getPointMapTool().setMode(Qad_arc_maptool_ModeEnum.START_END_PT_KNOWN_ASK_FOR_CENTER)
       
@@ -522,8 +522,8 @@ class QadARCCommandClass(QadCommandClass):
 
          englishKeyWords = "Angle" + "/" + "Direction" + "/" + "Radius"
          keyWords += "_" + englishKeyWords
-         # si appresta ad attendere un punto o una parola chiave         
-         # msg, inputType, default, keyWords, valori nulli non ammessi
+         # prepares to wait for a point or a keyword         
+         # msg, inputType, default, keyWords, null values not allowed
          self.waitFor(prompt, \
                       QadInputTypeEnum.POINT2D | QadInputTypeEnum.KEYWORDS, \
                       None, \
@@ -533,51 +533,31 @@ class QadARCCommandClass(QadCommandClass):
          return False
          
       # =========================================================================
-      # RISPOSTA ALLA RICHIESTA "Specificare centro dell'arco o [Angolo/Direzione/Raggio]: " (da step = 8)
-      elif self.step == 9: # dopo aver atteso un punto o una parola chiave si riavvia il comando
-         if msgMapTool == True: # il punto arriva da una selezione grafica
-            # la condizione seguente si verifica se durante la selezione di un punto
-            # é stato attivato un altro plugin che ha disattivato Qad
-            # quindi stato riattivato il comando che torna qui senza che il maptool
-            # abbia selezionato un punto            
-            if self.getPointMapTool().point is None: # il maptool é stato attivato senza un punto
-               if self.getPointMapTool().rightButton == True: # se usato il tasto destro del mouse
-                  return True # fine comando
+      # RESPONSE TO REQUEST "Specify center of the arc or [Angle/Direction/Radius]: " (from step = 8)
+      elif self.step == 9: # after waiting for a point or a keyword, the command is restarted
+         if msgMapTool == True: # the point comes from a graphic selection
+            # the following condition occurs if while selecting a point
+            # another plugin has been activated that has deactivated Qad
+            # then the command has been reactivated that returns here without the maptool
+            # having selected a point            
+            if self.getPointMapTool().point is None: # the maptool has been activated without a point
+               if self.getPointMapTool().rightButton == True: # if the right mouse button was used
+                  return True # end command
                else:
-                  self.setMapTool(self.getPointMapTool()) # riattivo il maptool
+                  self.setMapTool(self.getPointMapTool()) # reactivate the maptool
                   return False
 
             value = self.getPointMapTool().point
             ctrlPressed = self.getPointMapTool().ctrlKey
-         else: # il punto arriva come parametro della funzione
+         else: # the point comes as a parameter of the function
             value = msg
             ctrlPressed = False
 
          if type(value) == unicode:
             if value == QadMsg.translate("Command_ARC", "Angle") or value == "Angle":
-               # imposto il map tool
-               self.getPointMapTool().setMode(Qad_arc_maptool_ModeEnum.START_END_PT_KNOWN_ASK_FOR_ANGLE)
-               # si appresta ad attendere un punto o un numero reale         
-               # msg, inputType, default, keyWords, isNullable
-               self.waitFor(QadMsg.translate("Command_ARC", "Specify the included angle (hold Ctrl to switch direction): "), \
-                            QadInputTypeEnum.POINT2D | QadInputTypeEnum.ANGLE, \
-                            None, "", QadInputModeEnum.NOT_NULL | QadInputModeEnum.NOT_ZERO)
-               self.step = 10
-               return False                              
-            elif value == QadMsg.translate("Command_ARC", "Direction") or value == "Direction":
-               # imposto il map tool
-               self.getPointMapTool().setMode(Qad_arc_maptool_ModeEnum.START_END_PT_KNOWN_ASK_FOR_TAN)
-               # si appresta ad attendere un punto o un numero reale         
-               # msg, inputType, default, keyWords, isNullable
-               self.waitFor(QadMsg.translate("Command_ARC", "Specify the tangent direction for the start point of the arc (hold Ctrl to switch direction): "), \
-                            QadInputTypeEnum.POINT2D | QadInputTypeEnum.ANGLE, \
-                            None, "", QadInputModeEnum.NOT_NULL)
-               self.step = 11
-               return False            
-            elif value == QadMsg.translate("Command_ARC", "Radius") or value == "Radius":
-               # imposto il map tool
+               # set the map tool
                self.getPointMapTool().setMode(Qad_arc_maptool_ModeEnum.START_END_PT_KNOWN_ASK_FOR_RADIUS)
-               # si appresta ad attendere un punto o un numero reale         
+               # prepares to wait for a point or a real number         
                # msg, inputType, default, keyWords, isNullable
                self.waitFor(QadMsg.translate("Command_ARC", "Specify the radius of the arc (hold Ctrl to switch direction): "), \
                             QadInputTypeEnum.POINT2D | QadInputTypeEnum.FLOAT, \
@@ -585,18 +565,18 @@ class QadARCCommandClass(QadCommandClass):
                             QadInputModeEnum.NOT_NULL | QadInputModeEnum.NOT_ZERO | QadInputModeEnum.NOT_NEGATIVE)
                self.step = 12
                return False                              
-         elif type(value) == QgsPointXY: # se é stato inserito il centro dell'arco
+         elif type(value) == QgsPointXY: # if the center of the arc has been entered
             self.centerPt = value
 
             arc = QadArc()         
             if arc.fromStartCenterEndPts(self.startPt, self.centerPt, self.endPt) == True:
-               if ctrlPressed: # inverto angolo iniziale-finale
+               if ctrlPressed: # invert initial-final angle
                   arc.inverseAngles()
                   
                self.plugIn.setLastPoint(arc.getEndPt())
                geom = arc.asGeom(currLayer.wkbType())
                if geom is not None:
-                  # se i punti sono così vicini da essere considerati uguali
+                  # if the points are so close to be considered equal
                   if qad_utils.ptNear(self.startPt, arc.getStartPt()):
                      self.plugIn.setLastSegmentAng(arc.getTanDirectionOnEndPt())
                   else:
@@ -605,7 +585,7 @@ class QadARCCommandClass(QadCommandClass):
                   self.getPointMapTool().setPolarAngOffset(self.plugIn.lastSegmentAng)
                   
                   qad_layer.addGeomToLayer(self.plugIn, currLayer, self.mapToLayerCoordinates(currLayer, geom))
-                  return True # fine comando
+                  return True # end command
                            
             keyWords = QadMsg.translate("Command_ARC", "Angle") + "/" + \
                        QadMsg.translate("Command_ARC", "Direction") + "/" + \
@@ -615,33 +595,33 @@ class QadARCCommandClass(QadCommandClass):
                       
             englishKeyWords = "Angle" + "/" + "Direction" + "/" + "Radius"
             keyWords += "_" + englishKeyWords
-            # si appresta ad attendere un punto o una parola chiave         
+            # prepares to wait for a point or a keyword         
             # msg, inputType, default, keyWords, isNullable
             self.waitFor(prompt, \
                          QadInputTypeEnum.POINT2D | QadInputTypeEnum.KEYWORDS, \
                          None, \
                          keyWords, QadInputModeEnum.NOT_NULL)
-            self.isValidPreviousInput = False # per gestire il comando anche in macro                     
+            self.isValidPreviousInput = False # to manage the command also in macro                     
             return False
       
       # =========================================================================
-      # RISPOSTA ALLA RICHIESTA "Specificare angolo inscritto: " (da step = 9)
-      elif self.step == 10: # dopo aver atteso un punto o un numero reale si riavvia il comando
-         if msgMapTool == True: # il punto arriva da una selezione grafica
-            # la condizione seguente si verifica se durante la selezione di un punto
-            # é stato attivato un altro plugin che ha disattivato Qad
-            # quindi stato riattivato il comando che torna qui senza che il maptool
-            # abbia selezionato un punto            
-            if self.getPointMapTool().point is None: # il maptool é stato attivato senza un punto
-               if self.getPointMapTool().rightButton == True: # se usato il tasto destro del mouse
-                  return True # fine comando
+      # RESPONSE TO REQUEST "Specify included angle: " (from step = 9)
+      elif self.step == 10: # after waiting for a point or a real number, the command is restarted
+         if msgMapTool == True: # the point comes from a graphic selection
+            # the following condition occurs if while selecting a point
+            # another plugin has been activated that has deactivated Qad
+            # then the command has been reactivated that returns here without the maptool
+            # having selected a point            
+            if self.getPointMapTool().point is None: # the maptool has been activated without a point
+               if self.getPointMapTool().rightButton == True: # if the right mouse button was used
+                  return True # end command
                else:
-                  self.setMapTool(self.getPointMapTool()) # riattivo il maptool
+                  self.setMapTool(self.getPointMapTool()) # reactivate the maptool
                   return False
 
             value = self.getPointMapTool().point
             ctrlPressed = self.getPointMapTool().ctrlKey
-         else: # il punto arriva come parametro della funzione
+         else: # the point comes as a parameter of the function
             value = msg
             ctrlPressed = False
 
@@ -652,13 +632,13 @@ class QadARCCommandClass(QadCommandClass):
             
          arc = QadArc()         
          if arc.fromStartEndPtsAngle(self.startPt, self.endPt, self.angle) == True:
-            if ctrlPressed: # inverto angolo iniziale-finale
+            if ctrlPressed: # invert initial-final angle
                arc.inverseAngles()
                
             self.plugIn.setLastPoint(arc.getEndPt())
             geom = arc.asGeom(currLayer.wkbType())
             if geom is not None:
-               # se i punti sono così vicini da essere considerati uguali
+               # if the points are so close to be considered equal
                if qad_utils.ptNear(self.startPt, arc.getStartPt()):
                   self.plugIn.setLastSegmentAng(arc.getTanDirectionOnEndPt())
                else:
@@ -667,35 +647,35 @@ class QadARCCommandClass(QadCommandClass):
                self.getPointMapTool().setPolarAngOffset(self.plugIn.lastSegmentAng)
                
                qad_layer.addGeomToLayer(self.plugIn, currLayer, self.mapToLayerCoordinates(currLayer, geom))
-               return True # fine comando
+               return True # end command
 
-         # si appresta ad attendere un punto o un numero reale         
-         # msg, inputType, default, keyWords, valori non nulli
+         # prepares to wait for a point or a real number         
+         # msg, inputType, default, keyWords, null values not allowed
          self.waitFor(QadMsg.translate("Command_ARC", "Specify the included angle (hold Ctrl to switch direction): "), \
                       QadInputTypeEnum.POINT2D | QadInputTypeEnum.ANGLE, \
                       None, "", \
                       QadInputModeEnum.NOT_NULL | QadInputModeEnum.NOT_ZERO)
-         self.isValidPreviousInput = False # per gestire il comando anche in macro         
+         self.isValidPreviousInput = False # to manage the command also in macro         
          return False
       
       # =========================================================================
-      # RISPOSTA ALLA RICHIESTA "Specificare direzione tangente per il punto iniziale dell'arco: " (da step = 9)
-      elif self.step == 11: # dopo aver atteso un punto o un numero reale si riavvia il comando
-         if msgMapTool == True: # il punto arriva da una selezione grafica
-            # la condizione seguente si verifica se durante la selezione di un punto
-            # é stato attivato un altro plugin che ha disattivato Qad
-            # quindi stato riattivato il comando che torna qui senza che il maptool
-            # abbia selezionato un punto            
-            if self.getPointMapTool().point is None: # il maptool é stato attivato senza un punto
-               if self.getPointMapTool().rightButton == True: # se usato il tasto destro del mouse
-                  return True # fine comando
+      # RESPONSE TO REQUEST "Specify tangent direction for the start point of the arc: " (from step = 9)
+      elif self.step == 11: # after waiting for a point or a real number, the command is restarted
+         if msgMapTool == True: # the point comes from a graphic selection
+            # the following condition occurs if while selecting a point
+            # another plugin has been activated that has deactivated Qad
+            # then the command has been reactivated that returns here without the maptool
+            # having selected a point            
+            if self.getPointMapTool().point is None: # the maptool has been activated without a point
+               if self.getPointMapTool().rightButton == True: # if the right mouse button was used
+                  return True # end command
                else:
-                  self.setMapTool(self.getPointMapTool()) # riattivo il maptool
+                  self.setMapTool(self.getPointMapTool()) # reactivate the maptool
                   return False
 
             value = self.getPointMapTool().point
             ctrlPressed = self.getPointMapTool().ctrlKey
-         else: # il punto arriva come parametro della funzione
+         else: # the point comes as a parameter of the function
             value = msg
             ctrlPressed = False
             
@@ -706,13 +686,13 @@ class QadARCCommandClass(QadCommandClass):
 
          arc = QadArc()         
          if arc.fromStartEndPtsTan(self.startPt, self.endPt, self.angleTan) == True:
-            if ctrlPressed: # inverto angolo iniziale-finale
+            if ctrlPressed: # invert initial-final angle
                arc.inverseAngles()
                
             self.plugIn.setLastPoint(arc.getEndPt())
             geom = arc.asGeom(currLayer.wkbType())
             if geom is not None:
-               # se i punti sono così vicini da essere considerati uguali
+               # if the points are so close to be considered equal
                if qad_utils.ptNear(self.startPt, arc.getStartPt()):
                   self.plugIn.setLastSegmentAng(arc.getTanDirectionOnEndPt())
                else:
@@ -721,35 +701,35 @@ class QadARCCommandClass(QadCommandClass):
                self.getPointMapTool().setPolarAngOffset(self.plugIn.lastSegmentAng)
                
                qad_layer.addGeomToLayer(self.plugIn, currLayer, self.mapToLayerCoordinates(currLayer, geom))
-               return True # fine comando
+               return True # end command
 
-         # si appresta ad attendere un punto o un numero reale         
+         # prepares to wait for a point or a real number         
          # msg, inputType, default, keyWords, isNullable
          self.waitFor(QadMsg.translate("Command_ARC", "Specify the tangent direction for the start point of the arc (hold Ctrl to switch direction): "), \
                       QadInputTypeEnum.POINT2D | QadInputTypeEnum.ANGLE, \
                       None, "", QadInputModeEnum.NOT_NULL)
-         self.isValidPreviousInput = False # per gestire il comando anche in macro
+         self.isValidPreviousInput = False # to manage the command also in macro
          return False
 
 
       # =========================================================================
-      # RISPOSTA ALLA RICHIESTA "Specificare raggio dell'arco: " (da step = 9)
-      elif self.step == 12: # dopo aver atteso un punto o un numero reale si riavvia il comando
-         if msgMapTool == True: # il punto arriva da una selezione grafica
-            # la condizione seguente si verifica se durante la selezione di un punto
-            # é stato attivato un altro plugin che ha disattivato Qad
-            # quindi stato riattivato il comando che torna qui senza che il maptool
-            # abbia selezionato un punto            
-            if self.getPointMapTool().point is None: # il maptool é stato attivato senza un punto
-               if self.getPointMapTool().rightButton == True: # se usato il tasto destro del mouse
-                  return True # fine comando
+      # RESPONSE TO REQUEST "Specify radius of the arc: " (from step = 9)
+      elif self.step == 12: # after waiting for a point or a real number, the command is restarted
+         if msgMapTool == True: # the point comes from a graphic selection
+            # the following condition occurs if while selecting a point
+            # another plugin has been activated that has deactivated Qad
+            # then the command has been reactivated that returns here without the maptool
+            # having selected a point            
+            if self.getPointMapTool().point is None: # the maptool has been activated without a point
+               if self.getPointMapTool().rightButton == True: # if the right mouse button was used
+                  return True # end command
                else:
-                  self.setMapTool(self.getPointMapTool()) # riattivo il maptool
+                  self.setMapTool(self.getPointMapTool()) # reactivate the maptool
                   return False
 
             value = self.getPointMapTool().point
             ctrlPressed = self.getPointMapTool().ctrlKey
-         else: # il punto arriva come parametro della funzione
+         else: # the point comes as a parameter of the function
             value = msg
             ctrlPressed = False
 
@@ -762,13 +742,13 @@ class QadARCCommandClass(QadCommandClass):
          
          arc = QadArc()
          if arc.fromStartEndPtsRadius(self.startPt, self.endPt, self.radius) == True:
-            if ctrlPressed: # inverto angolo iniziale-finale
+            if ctrlPressed: # invert initial-final angle
                arc.inverseAngles()
                
             self.plugIn.setLastPoint(arc.getEndPt())
             geom = arc.asGeom(currLayer.wkbType())
             if geom is not None:
-               # se i punti sono così vicini da essere considerati uguali
+               # if the points are so close to be considered equal
                if qad_utils.ptNear(self.startPt, arc.getStartPt()):
                   self.plugIn.setLastSegmentAng(arc.getTanDirectionOnEndPt())
                else:
@@ -777,45 +757,45 @@ class QadARCCommandClass(QadCommandClass):
                self.getPointMapTool().setPolarAngOffset(self.plugIn.lastSegmentAng)
                
                qad_layer.addGeomToLayer(self.plugIn, currLayer, self.mapToLayerCoordinates(currLayer, geom))
-               return True # fine comando
+               return True # end command
 
-         # si appresta ad attendere un punto o un numero reale         
-         # msg, inputType, default, keyWords, valori positivi
+         # prepares to wait for a point or a real number         
+         # msg, inputType, default, keyWords, positive values
          self.waitFor(QadMsg.translate("Command_ARC", "Specify the radius of the arc (hold Ctrl to switch direction): "), \
                       QadInputTypeEnum.POINT2D | QadInputTypeEnum.FLOAT, \
                       None, "", \
                       QadInputModeEnum.NOT_NULL | QadInputModeEnum.NOT_ZERO | QadInputModeEnum.NOT_NEGATIVE)
-         self.isValidPreviousInput = False # per gestire il comando anche in macro
+         self.isValidPreviousInput = False # to manage the command also in macro
          return False
 
 
       # ========================================================================
-      # RISPOSTA ALLA RICHIESTA CENTRO DELL'ARCO (da step = 1)
-      elif self.step == 13: # dopo aver atteso un punto si riavvia il comando
-         if msgMapTool == True: # il punto arriva da una selezione grafica
-            # la condizione seguente si verifica se durante la selezione di un punto
-            # é stato attivato un altro plugin che ha disattivato Qad
-            # quindi stato riattivato il comando che torna qui senza che il maptool
-            # abbia selezionato un punto            
-            if self.getPointMapTool().point is None: # il maptool é stato attivato senza un punto
-               if self.getPointMapTool().rightButton == True: # se usato il tasto destro del mouse
-                  return True # fine comando
+      # RESPONSE TO REQUEST CENTER OF THE ARC (from step = 1)
+      elif self.step == 13: # after waiting for a point, the command is restarted
+         if msgMapTool == True: # the point comes from a graphic selection
+            # the following condition occurs if while selecting a point
+            # another plugin has been activated that has deactivated Qad
+            # then the command has been reactivated that returns here without the maptool
+            # having selected a point            
+            if self.getPointMapTool().point is None: # the maptool has been activated without a point
+               if self.getPointMapTool().rightButton == True: # if the right mouse button was used
+                  return True # end command
                else:
-                  self.setMapTool(self.getPointMapTool()) # riattivo il maptool
+                  self.setMapTool(self.getPointMapTool()) # reactivate the maptool
                   return False
 
             value = self.getPointMapTool().point
-         else: # il punto arriva come parametro della funzione
+         else: # the point comes as a parameter of the function
             value = msg
 
          self.centerPt = value
          self.plugIn.setLastPoint(value)
 
-         # imposto il map tool
+         # set the map tool
          self.getPointMapTool().arcCenterPt = self.centerPt
          self.getPointMapTool().setMode(Qad_arc_maptool_ModeEnum.CENTER_PT_KNOWN_ASK_FOR_START_PT)
 
-         # si appresta ad attendere un punto
+         # prepares to wait for a point
          self.waitForPoint(QadMsg.translate("Command_ARC", "Specify the start point of the arc: "))
          self.step = 14
          
@@ -823,28 +803,28 @@ class QadARCCommandClass(QadCommandClass):
 
 
       # =========================================================================
-      # RISPOSTA ALLA RICHIESTA PUNTO INIZIALE DELL'ARCO (da step = 13)
-      elif self.step == 14: # dopo aver atteso un punto si riavvia il comando
-         if msgMapTool == True: # il punto arriva da una selezione grafica
-            # la condizione seguente si verifica se durante la selezione di un punto
-            # é stato attivato un altro plugin che ha disattivato Qad
-            # quindi stato riattivato il comando che torna qui senza che il maptool
-            # abbia selezionato un punto            
-            if self.getPointMapTool().point is None: # il maptool é stato attivato senza un punto
-               if self.getPointMapTool().rightButton == True: # se usato il tasto destro del mouse
-                  return True # fine comando
+      # RESPONSE TO REQUEST START POINT OF THE ARC (from step = 13)
+      elif self.step == 14: # after waiting for a point, the command is restarted
+         if msgMapTool == True: # the point comes from a graphic selection
+            # the following condition occurs if while selecting a point
+            # another plugin has been activated that has deactivated Qad
+            # then the command has been reactivated that returns here without the maptool
+            # having selected a point            
+            if self.getPointMapTool().point is None: # the maptool has been activated without a point
+               if self.getPointMapTool().rightButton == True: # if the right mouse button was used
+                  return True # end command
                else:
-                  self.setMapTool(self.getPointMapTool()) # riattivo il maptool
+                  self.setMapTool(self.getPointMapTool()) # reactivate the maptool
                   return False
 
             value = self.getPointMapTool().point
-         else: # il punto arriva come parametro della funzione
+         else: # the point comes as a parameter of the function
             value = msg
 
          self.startPt = value
          self.plugIn.setLastPoint(value)
 
-         # imposto il map tool
+         # set the map tool
          self.getPointMapTool().arcStartPt = self.startPt
          self.getPointMapTool().setMode(Qad_arc_maptool_ModeEnum.START_CENTER_PT_KNOWN_ASK_FOR_END_PT)
          
@@ -855,7 +835,7 @@ class QadARCCommandClass(QadCommandClass):
                            
          englishKeyWords = "Angle" + "/" + "chord Length"
          keyWords += "_" + englishKeyWords
-         # si appresta ad attendere un punto o una parola chiave         
+         # prepares to wait for a point or a keyword         
          # msg, inputType, default, keyWords, isNullable
          self.waitFor(prompt, \
                       QadInputTypeEnum.POINT2D | QadInputTypeEnum.KEYWORDS, \
@@ -867,12 +847,12 @@ class QadARCCommandClass(QadCommandClass):
 
 
 # ============================================================================
-# Classe che gestisce il comando per cambiare il raggio di un arco per i grip
+# Class that manages the command to change the radius of an arc for grips
 # ============================================================================
 class QadGRIPCHANGEARCRADIUSCommandClass(QadCommandClass):
 
    def instantiateNewCmd(self):
-      """ istanzia un nuovo comando dello stesso tipo """
+      """ instantiates a new command of the same type """
       return QadGRIPCHANGEARCRADIUSCommandClass(self.plugIn)
 
    
@@ -902,21 +882,21 @@ class QadGRIPCHANGEARCRADIUSCommandClass(QadCommandClass):
    # setSelectedEntityGripPoints
    # ============================================================================
    def setSelectedEntityGripPoints(self, entitySetGripPoints):
-      # lista delle entityGripPoint con dei grip point selezionati
-      # setta la prima entità con un grip selezionato
+      # list of entityGripPoint with selected grip points
+      # sets the first entity with a selected grip
       self.entity = None
       for entityGripPoints in entitySetGripPoints.entityGripPoints:
          for gripPoint in entityGripPoints.gripPoints:
-            # grip point selezionato
+            # selected grip point
             if gripPoint.getStatus() == QadGripStatusEnum.SELECTED:
-               # verifico se l'entità appartiene ad uno stile di quotatura
+               # check if the entity belongs to a dimension style
                if QadDimStyles.isDimEntity(entityGripPoints.entity):
                   return False
                if entityGripPoints.entity.getQadGeom().whatIs() != "ARC":
                   return False
                
                self.entity = entityGripPoints.entity
-               arc = entityGripPoints.entity.getQadGeom() # arco in map coordinate
+               arc = entityGripPoints.entity.getQadGeom() # arc in map coordinate
                self.basePt.set(arc.center.x(), arc.center.y())
                return True
       return False
@@ -926,7 +906,7 @@ class QadGRIPCHANGEARCRADIUSCommandClass(QadCommandClass):
    # changeRadius
    # ============================================================================
    def changeRadius(self, radius):
-      # radius = nuovo raggio dell'arco
+      # radius = new radius of the arc
       if radius <= 0:
          return False
       arc = self.entity.getQadGeom()
@@ -971,15 +951,15 @@ class QadGRIPCHANGEARCRADIUSCommandClass(QadCommandClass):
 
       englishKeyWords = "Base point" + "/" + "Copy" + "/" + "Undo" + "/" "eXit"
       keyWords += "_" + englishKeyWords
-      # si appresta ad attendere un punto o enter o una parola chiave
-      # msg, inputType, default, keyWords, valori positivi
+      # prepares to wait for a point or enter or a keyword
+      # msg, inputType, default, keyWords, positive values
       self.waitFor(prompt, \
                    QadInputTypeEnum.POINT2D | QadInputTypeEnum.FLOAT | QadInputTypeEnum.KEYWORDS, \
                    None, \
                    keyWords, QadInputModeEnum.NOT_ZERO | QadInputModeEnum.NOT_NEGATIVE)
       self.step = 1
-      # imposto il map tool
-      self.getPointMapTool().setEntity(self.entity) # setta basePt nel centro dell'arco
+      # set the map tool
+      self.getPointMapTool().setEntity(self.entity) # sets basePt in the center of the arc
       self.getPointMapTool().basePt = self.basePt
       self.getPointMapTool().setMode(Qad_gripChangeArcRadius_maptool_ModeEnum.BASE_PT_KNOWN_ASK_FOR_RADIUS_PT)
 
@@ -989,10 +969,10 @@ class QadGRIPCHANGEARCRADIUSCommandClass(QadCommandClass):
    # ============================================================================
    def waitForBasePt(self):
       self.step = 2   
-      # imposto il map tool
+      # set the map tool
       self.getPointMapTool().setMode(Qad_gripChangeArcRadius_maptool_ModeEnum.ASK_FOR_BASE_PT)
 
-      # si appresta ad attendere un punto
+      # prepares to wait for a point
       self.waitForPoint(QadMsg.translate("Command_GRIP", "Specify base point: "))
 
 
@@ -1002,49 +982,49 @@ class QadGRIPCHANGEARCRADIUSCommandClass(QadCommandClass):
    def run(self, msgMapTool = False, msg = None):
       if self.plugIn.canvas.mapSettings().destinationCrs().isGeographic():
          self.showMsg(QadMsg.translate("QAD", "\nThe coordinate reference system of the project must be a projected coordinate system.\n"))
-         return True # fine comando
+         return True # end command
      
       # =========================================================================
-      # RICHIESTA SELEZIONE OGGETTI
-      if self.step == 0: # inizio del comando
-         if self.entity is None: # non ci sono oggetti da stirare
+      # OBJECTS SELECTION REQUEST
+      if self.step == 0: # beginning of the command
+         if self.entity is None: # no objects to stretch
             return True
          self.showMsg(QadMsg.translate("Command_GRIPCHANGEARCRADIUS", "\n** RADIUS **\n"))
-         # si appresta ad attendere raggio
+         # prepares to wait for radius
          self.waitForRadius()
          return False
       
       # =========================================================================
-      # RISPOSTA ALLA RICHIESTA DEL RAGGIO DI RACCORDO (da step = 1)
+      # RESPONSE TO THE REQUEST OF THE RADIUS OF FILLET (from step = 1)
       elif self.step == 1:
          ctrlKey = False
-         if msgMapTool == True: # il punto arriva da una selezione grafica
-            # la condizione seguente si verifica se durante la selezione di un punto
-            # é stato attivato un altro plugin che ha disattivato Qad
-            # quindi stato riattivato il comando che torna qui senza che il maptool
-            # abbia selezionato un punto            
-            if self.getPointMapTool().point is None: # il maptool é stato attivato senza un punto
-               if self.getPointMapTool().rightButton == True: # se usato il tasto destro del mouse
+         if msgMapTool == True: # the point comes from a graphic selection
+            # the following condition occurs if while selecting a point
+            # another plugin has been activated that has deactivated Qad
+            # then the command has been reactivated that returns here without the maptool
+            # having selected a point            
+            if self.getPointMapTool().point is None: # the maptool has been activated without a point
+               if self.getPointMapTool().rightButton == True: # if the right mouse button was used
                   if self.copyEntities == False:
                      self.skipToNextGripCommand = True
-                  return True # fine comando
+                  return True # end command
                else:
-                  self.setMapTool(self.getPointMapTool()) # riattivo il maptool
+                  self.setMapTool(self.getPointMapTool()) # reactivate the maptool
                   return False
 
             value = self.getPointMapTool().point
             ctrlKey = self.getPointMapTool().ctrlKey
-         else: # il punto arriva come parametro della funzione
+         else: # the point comes as a parameter of the function
             value = msg
 
          if type(value) == unicode:
             if value == QadMsg.translate("Command_GRIP", "Base point") or value == "Base point":
-               # si appresta ad attendere il punto base
+               # prepares to wait for the base point
                self.waitForBasePt()
             elif value == QadMsg.translate("Command_GRIP", "Copy") or value == "Copy":
-               # Copia entità lasciando inalterate le originali
+               # Copy entities leaving the originals unchanged
                self.copyEntities = True                     
-               # si appresta ad attendere raggio
+               # prepares to wait for radius
                self.waitForRadius()
             elif value == QadMsg.translate("Command_GRIP", "Undo") or value == "Undo":
                if self.nOperationsToUndo > 0: 
@@ -1052,15 +1032,15 @@ class QadGRIPCHANGEARCRADIUSCommandClass(QadCommandClass):
                   self.plugIn.undoEditCommand()
                else:
                   self.showMsg(QadMsg.translate("QAD", "\nThe command has been canceled."))                  
-               # si appresta ad attendere raggio
+               # prepares to wait for radius
                self.waitForRadius()
             elif value == QadMsg.translate("Command_GRIP", "eXit") or value == "eXit":
-               return True # fine comando
-         elif type(value) == QgsPointXY or type(value) == float: # se é stato inserito il raggio
-            if type(value) == QgsPointXY: # se é stato inserito il raggio con un punto
+               return True # end command
+         elif type(value) == QgsPointXY or type(value) == float: # if the radius has been entered
+            if type(value) == QgsPointXY: # if the radius has been entered with a point
                if value == self.basePt:
                   self.showMsg(QadMsg.translate("QAD", "\nThe value must be positive and not zero."))
-                  # si appresta ad attendere raggio
+                  # prepares to wait for radius
                   self.waitForRadius()
                   return False
                                       
@@ -1075,40 +1055,57 @@ class QadGRIPCHANGEARCRADIUSCommandClass(QadCommandClass):
 
             if self.copyEntities == False:
                return True
-            # si appresta ad attendere raggio
+            # prepares to wait for radius
             self.waitForRadius()
          else:
             if self.copyEntities == False:
                self.skipToNextGripCommand = True
-            return True # fine comando
+            return True # end command
 
          return False
               
       # =========================================================================
-      # RISPOSTA ALLA RICHIESTA PUNTO BASE (da step = 1)
-      elif self.step == 2: # dopo aver atteso un punto
-         if msgMapTool == True: # il punto arriva da una selezione grafica
-            # la condizione seguente si verifica se durante la selezione di un punto
-            # é stato attivato un altro plugin che ha disattivato Qad
-            # quindi stato riattivato il comando che torna qui senza che il maptool
-            # abbia selezionato un punto            
-            if self.getPointMapTool().point is None: # il maptool é stato attivato senza un punto
-               if self.getPointMapTool().rightButton == True: # se usato il tasto destro del mouse
-                  pass # opzione di default
+      # RESPONSE TO THE BASE POINT REQUEST (from step = 1)
+      elif self.step == 2: # after waiting for a point
+         if msgMapTool == True: # the point comes from a graphic selection
+            # the following condition occurs if while selecting a point
+            # another plugin has been activated that has deactivated Qad
+            # then the command has been reactivated that returns here without the maptool
+            # having selected a point            
+            if self.getPointMapTool().point is None: # the maptool has been activated without a point
+               if self.getPointMapTool().rightButton == True: # if the right mouse button was used
+                  pass # default option
                else:
-                  self.setMapTool(self.getPointMapTool()) # riattivo il maptool
+                  self.setMapTool(self.getPointMapTool()) # reactivate the maptool
                   return False
 
             value = self.getPointMapTool().point
-         else: # il punto arriva come parametro della funzione
+         else: # the point comes as a parameter of the function
             value = msg
 
-         if type(value) == QgsPointXY: # se é stato inserito il punto base
+         if type(value) == QgsPointXY: # if the base point has been entered
             self.basePt.set(value.x(), value.y())
-            # imposto il map tool
+            # set the map tool
             self.getPointMapTool().basePt = self.basePt
             
-         # si appresta ad attendere raggio
+         # prepares to wait for radius
          self.waitForRadius()
 
-         return False
+         return FalseANGLE)
+               # prepares to wait for a point or a real number         
+               # msg, inputType, default, keyWords, isNullable
+               self.waitFor(QadMsg.translate("Command_ARC", "Specify the included angle (hold Ctrl to switch direction): "), \
+                            QadInputTypeEnum.POINT2D | QadInputTypeEnum.ANGLE, \
+                            None, "", QadInputModeEnum.NOT_NULL | QadInputModeEnum.NOT_ZERO)
+               self.step = 10
+               return False                              
+            elif value == QadMsg.translate("Command_ARC", "Direction") or value == "Direction":
+               # set the map tool
+               self.getPointMapTool().setMode(Qad_arc_maptool_ModeEnum.START_END_PT_KNOWN_ASK_FOR_TAN)
+               # prepares to wait for a point or a real number         
+               # msg, inputType, default, keyWords, isNullable
+               self.waitFor(QadMsg.translate("Command_ARC", "Specify the tangent direction for the start point of the arc (hold Ctrl to switch direction): "), \
+                            QadInputTypeEnum.POINT2D | QadInputTypeEnum.ANGLE, \
+                            None, "", QadInputModeEnum.NOT_NULL)
+               self.step = 11
+               return False     
