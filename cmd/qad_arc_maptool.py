@@ -6,7 +6,7 @@
  Class to manage the map tool for requesting a point in the context of the arc command
  
                               -------------------
-        begin                : 2013-05-22
+        begin                : 2025-05-07
         copyright            : iiiii
         email                : brad@blackruby.dev
         developers           : Brad, ClaudeAI
