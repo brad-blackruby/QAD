@@ -3,13 +3,13 @@
 /***************************************************************************
  QAD Quantum Aided Design plugin
 
- classe per gestire il map tool in ambito del comando offset
+ Class for managing the map tool in the context of the offset command
  
                               -------------------
         begin                : 2013-10-04
         copyright            : iiiii
-        email                : hhhhh
-        developers           : bbbbb aaaaa ggggg
+        email                : brad@blackruby.dev
+        developers           : Brad, ClaudeAI
  ***************************************************************************/
 
 /***************************************************************************
@@ -40,15 +40,15 @@ from ..qad_multi_geom import fromQgsGeomToQadGeom
 # Qad_offset_maptool_ModeEnum class.
 # ===============================================================================
 class Qad_offset_maptool_ModeEnum():
-   # si richiede il primo punto per calcolo offset 
+   # Requests the first point for offset calculation 
    ASK_FOR_FIRST_OFFSET_PT = 1     
-   # noto il primo punto per calcolo offset si richiede il secondo punto
+   # First point for offset calculation is known, requesting the second point
    FIRST_OFFSET_PT_KNOWN_ASK_FOR_SECOND_PT = 2     
-   # nota la distanza di offset si richiede il punto per stabilire da che parte
+   # Offset distance is known, requesting the point to establish which side
    OFFSET_KNOWN_ASK_FOR_SIDE_PT = 3
-   # si richiede il punto di passaggio per stabilire da che parte e a quale offset
+   # Requesting the passage point to establish which side and at what offset
    ASK_FOR_PASSAGE_PT = 4  
-   # si richiede la selezione di un oggetto
+   # Requesting the selection of an object
    ASK_FOR_ENTITY_SELECTION = 5  
 
 # ===============================================================================
@@ -62,7 +62,7 @@ class Qad_offset_maptool(QadGetPoint):
       self.firstPt = None
       self.layer = None
       self.subGeom = None
-      self.subGeomAsPolyline = None # geometria sotto forma di lista di punti
+      self.subGeomAsPolyline = None # geometry in the form of a list of points
       self.offset = 0
       self.lastOffSetOnLeftSide = 0
       self.lastOffSetOnRightSide = 0
@@ -86,49 +86,49 @@ class Qad_offset_maptool(QadGetPoint):
    def addOffSetGeometries(self, newPt):
       self.__highlight.reset()
        
-      # la funzione ritorna una lista con 
-      # (<minima distanza>
-      # <punto più vicino>
-      # <indice della geometria più vicina>
-      # <indice della sotto-geometria più vicina>
-      # <indice della parte della sotto-geometria più vicina>
-      # <"a sinistra di" se il punto é alla sinista della parte con i seguenti valori:
-      # -   < 0 = sinistra (per linea, arco o arco di ellisse) o interno (per cerchi, ellissi)
-      # -   > 0 = destra (per linea, arco o arco di ellisse) o esterno (per cerchi, ellissi)
+      # The function returns a list with 
+      # (<minimum distance>
+      # <closest point>
+      # <index of the closest geometry>
+      # <index of the closest sub-geometry>
+      # <index of the part of the closest sub-geometry>
+      # <"left of" if the point is to the left of the part with the following values:
+      # -   < 0 = left (for line, arc or ellipse arc) or inside (for circles, ellipses)
+      # -   > 0 = right (for line, arc or ellipse arc) or outside (for circles, ellipses)
 #       result = getQadGeomClosestPart(self.subGeom, newPt)
 #       leftOf = result[5]
 #        
 #       if self.offset < 0:
-#          offsetDistance = result[0] # minima distanza
+#          offsetDistance = result[0] # minimum distance
 #       else:           
 #          offsetDistance = self.offset
 #  
-#          if leftOf < 0: # a sinistra (per linea, arco o arco di ellisse) o interno (per cerchi, ellissi)            
+#          if leftOf < 0: # to the left (for line, arc or ellipse arc) or inside (for circles, ellipses)            
 #             offsetDistance = offsetDistance + self.lastOffSetOnLeftSide
-#          else: # alla destra
+#          else: # to the right
 #             offsetDistance = offsetDistance + self.lastOffSetOnRightSide         
       
       forcedOffsetDist = None
-      if self.offset > 0: # se è stata impostata già una distanza devo solo verificare la direzione dell'offset
-         # la funzione ritorna una lista con 
-         # (<minima distanza>
-         # <punto più vicino>
-         # <indice della geometria più vicina>
-         # <indice della sotto-geometria più vicina>
-         # <indice della parte della sotto-geometria più vicina>
-         # <"a sinistra di" se il punto é alla sinista della parte con i seguenti valori:
-         # -   < 0 = sinistra (per linea, arco o arco di ellisse) o interno (per cerchi, ellissi)
-         # -   > 0 = destra (per linea, arco o arco di ellisse) o esterno (per cerchi, ellissi)
+      if self.offset > 0: # if a distance has already been set, I just need to verify the direction of the offset
+         # The function returns a list with 
+         # (<minimum distance>
+         # <closest point>
+         # <index of the closest geometry>
+         # <index of the closest sub-geometry>
+         # <index of the part of the closest sub-geometry>
+         # <"left of" if the point is to the left of the part with the following values:
+         # -   < 0 = left (for line, arc or ellipse arc) or inside (for circles, ellipses)
+         # -   > 0 = right (for line, arc or ellipse arc) or outside (for circles, ellipses)
          dummy = getQadGeomClosestPart(self.subGeom, newPt)
          leftOf = dummy[5]         
               
-         if leftOf < 0: # a sinistra (per linea, arco o arco di ellisse) o interno (per cerchi, ellissi)            
+         if leftOf < 0: # to the left (for line, arc or ellipse arc) or inside (for circles, ellipses)            
             forcedOffsetDist = self.offset + self.lastOffSetOnLeftSide
-         else: # alla destra
+         else: # to the right
             forcedOffsetDist = self.offset + self.lastOffSetOnRightSide         
       
       
-      # se self.subGeom implementa il metodo isClosed
+      # if self.subGeom implements the isClosed method
       closed = self.subGeom.isClosed() if hasattr(self.subGeom, "isClosed") and callable(getattr(self.subGeom, "isClosed")) else False
 
       if self.layer.geometryType() == QgsWkbTypes.PolygonGeometry or closed == True:
@@ -142,7 +142,7 @@ class Qad_offset_maptool(QadGetPoint):
                                         forcedOffsetDist)
       
       for g in offsetQGSGeomList:
-         # converto in QAD geometry per riconoscere le curve
+         # convert to QAD geometry to recognize curves
          g = fromQgsGeomToQadGeom(g).asGeom(self.layer.wkbType())        
          self.__highlight.addGeometry(self.mapToLayerCoordinates(self.layer, g), self.layer)
                   
@@ -154,7 +154,7 @@ class Qad_offset_maptool(QadGetPoint):
 #       for line in lines:
 #          pts = line.asPolyline()
 #          if self.layer.geometryType() == QgsWkbTypes.PolygonGeometry:
-#             if line[0] == line[-1]: # se é una linea chiusa
+#             if line[0] == line[-1]: # if it's a closed line
 #                offsetGeom = QgsGeometry.fromPolygonXY([pts])
 #             else:
 #                offsetGeom = QgsGeometry.fromPolylineXY(pts)
@@ -167,10 +167,10 @@ class Qad_offset_maptool(QadGetPoint):
    def canvasMoveEvent(self, event):
       QadGetPoint.canvasMoveEvent(self, event)
       
-      # nota la distanza di offset si richiede il punto per stabilire da che parte
+      # offset distance is known, requesting the point to establish which side
       if self.mode == Qad_offset_maptool_ModeEnum.OFFSET_KNOWN_ASK_FOR_SIDE_PT:
          self.addOffSetGeometries(self.tmpPoint)                           
-      # si richiede il punto di passaggio per stabilire da che parte e a quale offset
+      # requesting the passage point to establish which side and at what offset
       elif self.mode == Qad_offset_maptool_ModeEnum.ASK_FOR_PASSAGE_PT:
          self.addOffSetGeometries(self.tmpPoint)                           
          
@@ -180,7 +180,7 @@ class Qad_offset_maptool(QadGetPoint):
       self.__highlight.show()          
 
    def deactivate(self):
-      try: # necessario perché se si chiude QGIS parte questo evento nonostante non ci sia più l'oggetto maptool !
+      try: # necessary because if QGIS is closed this event starts despite the maptool object no longer existing!
          QadGetPoint.deactivate(self)
          self.__highlight.hide()
       except:
@@ -189,33 +189,33 @@ class Qad_offset_maptool(QadGetPoint):
    def setMode(self, mode):
       self.clear()
       self.mode = mode
-      # si richiede il primo punto per calcolo offset
+      # requesting the first point for offset calculation
       if self.mode == Qad_offset_maptool_ModeEnum.ASK_FOR_FIRST_OFFSET_PT:
          self.setSelectionMode(QadGetPointSelectionModeEnum.POINT_SELECTION)
          self.setDrawMode(QadGetPointDrawModeEnum.NONE)
          self.onlyEditableLayers = False
-      # noto il primo punto per calcolo offset si richiede il secondo punto
+      # first point for offset calculation is known, requesting the second point
       if self.mode == Qad_offset_maptool_ModeEnum.FIRST_OFFSET_PT_KNOWN_ASK_FOR_SECOND_PT:
          self.setSelectionMode(QadGetPointSelectionModeEnum.POINT_SELECTION)
          self.setDrawMode(QadGetPointDrawModeEnum.ELASTIC_LINE)
          self.setStartPoint(self.firstPt)
          self.onlyEditableLayers = False
-      # nota la distanza di offset si richiede il punto per stabilire da che parte
+      # offset distance is known, requesting the point to establish which side
       elif self.mode == Qad_offset_maptool_ModeEnum.OFFSET_KNOWN_ASK_FOR_SIDE_PT:
          self.setSelectionMode(QadGetPointSelectionModeEnum.POINT_SELECTION)
          self.setDrawMode(QadGetPointDrawModeEnum.NONE)
          self.onlyEditableLayers = False
-      # si richiede il punto di passaggio per stabilire da che parte e a quale offset
+      # requesting the passage point to establish which side and at what offset
       elif self.mode == Qad_offset_maptool_ModeEnum.ASK_FOR_PASSAGE_PT:
          self.setSelectionMode(QadGetPointSelectionModeEnum.POINT_SELECTION)
          self.setDrawMode(QadGetPointDrawModeEnum.NONE)
          self.onlyEditableLayers = False
-      # si richiede la selezione di un oggetto
+      # requesting the selection of an object
       elif self.mode == Qad_offset_maptool_ModeEnum.ASK_FOR_ENTITY_SELECTION:
          self.setSelectionMode(QadGetPointSelectionModeEnum.ENTITY_SELECTION)
-         # solo layer lineari o poligono editabili che non appartengano a quote
+         # only editable linear or polygon layers that do not belong to dimensions
          layerList = []
-         for layer in qad_utils.getVisibleVectorLayers(self.plugIn.canvas): # Tutti i layer vettoriali visibili
+         for layer in qad_utils.getVisibleVectorLayers(self.plugIn.canvas): # All visible vector layers
             if (layer.geometryType() == QgsWkbTypes.LineGeometry or layer.geometryType() == QgsWkbTypes.PolygonGeometry) and \
                layer.isEditable():
                if len(QadDimStyles.getDimListByLayer(layer)) == 0:
