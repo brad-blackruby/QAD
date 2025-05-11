@@ -3,13 +3,13 @@
 /***************************************************************************
  QAD Quantum Aided Design plugin ok
 
- comando ARRAY per copiare serie di oggetti
+ ARRAY command for copying series of objects
  
                               -------------------
-        begin                : 2016-05-03
+        begin                : 2025-05-10
         copyright            : iiiii
-        email                : hhhhh
-        developers           : bbbbb aaaaa ggggg
+        email                : brad@blackruby.dev
+        developers           : Brad, ClaudeAI
  ***************************************************************************/
 
 /***************************************************************************
@@ -55,64 +55,62 @@ from ..qad_multi_geom import getQadGeomAt
 # QadARRAYCommandClassSeriesTypeEnum class.
 # ===============================================================================
 class QadARRAYCommandClassSeriesTypeEnum():
-   RECTANGLE = 1 # serie rettangolare
-   PATH      = 2 # serie lungo una traiettoria
-   POLAR     = 3 # serie polare
+   RECTANGLE = 1 # rectangular array
+   PATH      = 2 # array along a path
+   POLAR     = 3 # polar array
 
 
 # ===============================================================================
 # QadARRAYCommandClassPathMethodTypeEnum class.
 # ===============================================================================
 class QadARRAYCommandClassPathMethodTypeEnum():
-   DIVIDE  = 1 # metodo dividi
-   MEASURE = 2 # metodo misura
+   DIVIDE  = 1 # divide method
+   MEASURE = 2 # measure method
 
 
 # ===============================================================================
 # QadARRAYCommandClassStepEnum class.
 # ===============================================================================
 class QadARRAYCommandClassStepEnum():
-   ASK_FOR_SELSET                = 0  # richiede il gruppo di selezione ogggetti (deve essere = 0 perchè è l'inizio del comando)
-   ASK_FOR_ARRAYTYPE             = 1  # richiede il tipo di serie
-   ASK_FOR_ROW_N                 = 2  # richiede il numero di righe (per rettangolo, traiettoria, polare)
-   ASK_FOR_ROW_SPACE_OR_TOT      = 3  # richiede la distanza tra le righe o il totale (per rettangolo, traiettoria, polare)
-   ASK_FOR_ROW_SPACE_TOT         = 4  # richiede il totale della spaziatura delle righe (per rettangolo, traiettoria)
-   ASK_FOR_ROW_SPACE_2PT         = 5  # richiede il secondo punto per misurare la distanza tra le righe
-   ASK_FOR_BASE_PT               = 6  # richiede il punto base (per rettangolo, traiettoria, polare)
-   ASK_FOR_MAIN_OPTIONS          = 7  # richiede di selezionare un'opzione (per rettangolo, traiettoria, polare)
-   ASK_FOR_ITEM_N                = 8  # richiede il numero di elementi lungo la traiettoria (per traiettoria, polare)
-   ASK_FOR_ITEM_ROTATION         = 9  # richiede se gli elementi devono essere allineati (per traiettoria, polare)
-   ASK_FOR_DEL_ORIG_OBJS         = 10 # richiede se gli elementi originali devono essere cancellati (per rettangolo, traiettoria, polare)
-   ASK_FOR_BASE_PT_BEFORE_MAIN_OPTIONS = 29 # richiede il punto base prima delle opzioni (per polare)
-   # RETTANGOLO
-   ASK_FOR_ANGLE                 = 11 # richiede l'angolo di rotazione dell'asse delle righe
-   ASK_FOR_COLUMN_COUNT          = 12 # richiede il numero di colonne dall'opzione COUNT
-   ASK_FOR_COLUMN_N              = 13 # richiede il numero di colonne dall'opzione COLUMN
-   ASK_FOR_COLUMN_SPACE_OR_CELL  = 14 # richiede la distanza tra le colonne o l'unità di cella
-   ASK_FOR_COLUMN_SPACE_2PT      = 15 # richiede il secondo punto per misurare la distanza tra le colonne
-   ASK_FOR_ROW_COUNT             = 16 # richiede il numero di righe dall'opzione COUNT
-   ASK_FOR_ROW_SPACE             = 17 # richiede la distanza tra le righe
-   ASK_FOR_1PT_CELL              = 18 # richiede il primo angolo della cella
-   ASK_FOR_2PT_CELL              = 19 # richiede il secondo angolo della cella
-   ASK_FOR_COLUMN_SPACE_OR_TOT   = 20 # richiede la distanza tra le colonne o il totale
-   ASK_FOR_COLUMN_SPACE_TOT      = 21 # richiede il totale della spaziatura delle colonne
-   # TRAIETTORIA
-   ASK_FOR_PATH_OBJ              = 22 # richiede la selezione dell'oggetto traiettoria
-   ASK_FOR_PATH_METHOD           = 23 # richiede il metodo
-   ASK_FOR_TAN_DIRECTION         = 24 # richiede la selezione della direzione della tangente
-   ASK_FOR_ITEM_SPACE            = 25 # richiede la distanza tra gli elementi
-   # POLARE
-   ASK_FOR_CENTER_PT             = 26 # richiede la selezione del punto centrale della serie
-   ASK_FOR_ANGLE_BETWEEN_ITEMS   = 27 # richiede la selezione dell'angolo tra gli elementi
-   ASK_FOR_FULL_ANGLE            = 28 # richiede la selezione dell'angolo da riempire
+   ASK_FOR_SELSET                = 0  # requests the object selection set (must be = 0 because it's the start of the command)
+   ASK_FOR_ARRAYTYPE             = 1  # requests the array type
+   ASK_FOR_ROW_N                 = 2  # requests the number of rows (for rectangle, path, polar)
+   ASK_FOR_ROW_SPACE_OR_TOT      = 3  # requests the distance between rows or total (for rectangle, path, polar)
+   ASK_FOR_ROW_SPACE_TOT         = 4  # requests the total spacing of rows (for rectangle, path)
+   ASK_FOR_ROW_SPACE_2PT         = 5  # requests the second point to measure the distance between rows
+   ASK_FOR_BASE_PT               = 6  # requests the base point (for rectangle, path, polar)
+   ASK_FOR_MAIN_OPTIONS          = 7  # requests to select an option (for rectangle, path, polar)
+   ASK_FOR_ITEM_N                = 8  # requests the number of elements along the path (for path, polar)
+   ASK_FOR_ITEM_ROTATION         = 9  # requests if elements must be aligned (for path, polar)
+   ASK_FOR_DEL_ORIG_OBJS         = 10 # requests if original elements must be deleted (for rectangle, path, polar)
+   ASK_FOR_BASE_PT_BEFORE_MAIN_OPTIONS = 29 # requests the base point before options (for polar)
+   # RECTANGLE
+   ASK_FOR_ANGLE                 = 11 # requests the rotation angle of the row axis
+   ASK_FOR_COLUMN_COUNT          = 12 # requests the number of columns from the COUNT option
+   ASK_FOR_COLUMN_N              = 13 # requests the number of columns from the COLUMN option
+   ASK_FOR_COLUMN_SPACE_OR_CELL  = 14 # requests the distance between columns or the cell unit
+   ASK_FOR_COLUMN_SPACE_2PT      = 15 # requests the second point to measure the distance between columns
+   ASK_FOR_ROW_COUNT             = 16 # requests the number of rows from the COUNT option
+   ASK_FOR_ROW_SPACE             = 17 # requests the distance between rows
+   ASK_FOR_1PT_CELL              = 18 # requests the first corner of the cell
+   ASK_FOR_2PT_CELL              = 19 # requests the second corner of the cell
+   ASK_FOR_COLUMN_SPACE_OR_TOT   = 20 # requests the distance between columns or the total
+   ASK_FOR_COLUMN_SPACE_TOT      = 21 # requests the total spacing of columns
+   # PATH
+   ASK_FOR_PATH_OBJ              = 22 # requests the selection of the path object
+   ASK_FOR_PATH_METHOD           = 23 # requests the method
+   ASK_FOR_TAN_DIRECTION         = 24 # requests the selection of the tangent direction
+   ASK_FOR_ITEM_SPACE            = 25 # requests the distance between elements
+   # POLAR
+   ASK_FOR_CENTER_PT             = 26 # requests the selection of the central point of the array
+   ASK_FOR_ANGLE_BETWEEN_ITEMS   = 27 # requests the selection of the angle between elements
+   ASK_FOR_FULL_ANGLE            = 28 # requests the selection of the angle to fill
    
-
-
-# Classe che gestisce il comando ARRAY
+# Class that manages the ARRAY command
 class QadARRAYCommandClass(QadCommandClass):
 
    def instantiateNewCmd(self):
-      """ istanzia un nuovo comando dello stesso tipo """
+      """ instantiates a new command of the same type """
       return QadARRAYCommandClass(self.plugIn)
    
    def getName(self):
@@ -128,7 +126,7 @@ class QadARRAYCommandClass(QadCommandClass):
       return QIcon(":/plugins/qad/icons/arrayRect.svg")
 
    def getNote(self):
-      # impostare le note esplicative del comando
+      # set the explanatory notes of the command
       return QadMsg.translate("Command_ARRAY", "Creates copies of objects in a regularly spaced rectangular, polar, or path array.")
    
    def __init__(self, plugIn):
@@ -149,21 +147,21 @@ class QadARRAYCommandClass(QadCommandClass):
       if self.delObj == QadDELOBJEnum.DELETE_ALL: # Delete all defining geometry
          self.delOrigSelSet = True
 
-      # serie rettangolare
+      # rectangular array
       self.rectangleAngle = self.plugIn.lastRectangleAngle_array
       self.rectangleCols = self.plugIn.lastRectangleCols_array
       self.rectangleRows = self.plugIn.lastRectangleRows_array
-      self.firstPt = QgsPointXY() # primo punto per misurare la distanza tra righe
+      self.firstPt = QgsPointXY() # first point to measure the distance between rows
       
-      # serie traiettoria
+      # path array
       self.pathTangentDirection = self.plugIn.lastPathTangentDirection_array
       self.pathRows = self.plugIn.lastPathRows_array
       self.pathItemsNumber = 1
       self.pathPolyline = QadPolyline()
       self.pathMethod = QadARRAYCommandClassPathMethodTypeEnum.MEASURE
-      self.distanceFromStartPt = 0.0 # uso interno quando si imposta il metodo dividi
+      self.distanceFromStartPt = 0.0 # internal use when setting the divide method
       
-      # serie polare
+      # polar array
       self.centerPt = QgsPointXY()
       self.polarItemsNumber = self.plugIn.lastPolarItemsNumber_array
       self.polarAngleBetween = self.plugIn.lastPolarAngleBetween_array
@@ -172,7 +170,7 @@ class QadARRAYCommandClass(QadCommandClass):
       self.GetDistClass = None
       self.GetAngleClass = None
       
-      self.featureCache = [] # lista di (layer, feature)
+      self.featureCache = [] # list of (layer, feature)
 
    def __del__(self):
       QadCommandClass.__del__(self)
@@ -180,15 +178,15 @@ class QadARRAYCommandClass(QadCommandClass):
          del self.SSGetClass
       
    def getPointMapTool(self, drawMode = QadGetPointDrawModeEnum.NONE):
-      if self.step == QadARRAYCommandClassStepEnum.ASK_FOR_SELSET: # quando si é in fase di selezione entità
+      if self.step == QadARRAYCommandClassStepEnum.ASK_FOR_SELSET: # when in entity selection phase
          return self.SSGetClass.getPointMapTool()
-      # quando si é in fase di richiesta rotazione
+      # when requesting rotation
       elif self.step == QadARRAYCommandClassStepEnum.ASK_FOR_ANGLE or \
            self.step == QadARRAYCommandClassStepEnum.ASK_FOR_TAN_DIRECTION or \
            self.step == QadARRAYCommandClassStepEnum.ASK_FOR_ANGLE_BETWEEN_ITEMS or \
            self.step == QadARRAYCommandClassStepEnum.ASK_FOR_FULL_ANGLE:
          return self.GetAngleClass.getPointMapTool()
-      # quando si é in fase di richiesta distanza
+      # when requesting distance
       elif self.step == QadARRAYCommandClassStepEnum.ASK_FOR_COLUMN_SPACE_2PT or \
            self.step == QadARRAYCommandClassStepEnum.ASK_FOR_ROW_SPACE_TOT or \
            self.step == QadARRAYCommandClassStepEnum.ASK_FOR_COLUMN_SPACE_TOT or \
@@ -205,15 +203,15 @@ class QadARRAYCommandClass(QadCommandClass):
 
 
    def getCurrentContextualMenu(self):
-      if self.step == QadARRAYCommandClassStepEnum.ASK_FOR_SELSET: # quando si é in fase di selezione entità
+      if self.step == QadARRAYCommandClassStepEnum.ASK_FOR_SELSET: # when in entity selection phase
          return None # return self.SSGetClass.getCurrentContextualMenu()
-      # quando si é in fase di richiesta rotazione
+      # when requesting rotation
       elif self.step == QadARRAYCommandClassStepEnum.ASK_FOR_ANGLE or \
            self.step == QadARRAYCommandClassStepEnum.ASK_FOR_TAN_DIRECTION or \
            self.step == QadARRAYCommandClassStepEnum.ASK_FOR_ANGLE_BETWEEN_ITEMS or \
            self.step == QadARRAYCommandClassStepEnum.ASK_FOR_FULL_ANGLE:
          return self.GetAngleClass.getCurrentContextualMenu()
-      # quando si é in fase di richiesta distanza
+      # when requesting distance
       elif self.step == QadARRAYCommandClassStepEnum.ASK_FOR_COLUMN_SPACE_2PT or \
            self.step == QadARRAYCommandClassStepEnum.ASK_FOR_ROW_SPACE_TOT or \
            self.step == QadARRAYCommandClassStepEnum.ASK_FOR_COLUMN_SPACE_TOT or \
@@ -228,8 +226,8 @@ class QadARRAYCommandClass(QadCommandClass):
    # updatePointMapToolParams
    # ============================================================================
    def updatePointMapToolParams(self):
-      self.step = -1 * self.step # trucchetto per prendere il map tool base
-      self.getPointMapTool().refreshSnapType() # aggiorno lo snapType che può essere variato da altri maptool
+      self.step = -1 * self.step # trick to get the base map tool
+      self.getPointMapTool().refreshSnapType() # update snapType that can be varied by other maptools
       
       self.getPointMapTool().cacheEntitySet = self.cacheEntitySet
       self.getPointMapTool().basePt = self.basePt
@@ -238,27 +236,27 @@ class QadARRAYCommandClass(QadCommandClass):
       self.getPointMapTool().distanceBetweenCols = self.distanceBetweenCols
       self.getPointMapTool().itemsRotation = self.itemsRotation
 
-      if self.arrayType == QadARRAYCommandClassSeriesTypeEnum.RECTANGLE: # serie rettangolare
+      if self.arrayType == QadARRAYCommandClassSeriesTypeEnum.RECTANGLE: # rectangular array
          self.getPointMapTool().rectangleAngle = self.rectangleAngle
          self.getPointMapTool().rectangleCols = self.rectangleCols
          self.getPointMapTool().rectangleRows = self.rectangleRows
          self.getPointMapTool().firstPt = self.firstPt
          self.getPointMapTool().doRectangleArray()
-      elif self.arrayType == QadARRAYCommandClassSeriesTypeEnum.PATH: # serie traiettoria
+      elif self.arrayType == QadARRAYCommandClassSeriesTypeEnum.PATH: # path array
          self.getPointMapTool().pathTangentDirection = self.pathTangentDirection
          self.getPointMapTool().pathRows = self.pathRows
          self.getPointMapTool().pathItemsNumber = self.pathItemsNumber
          self.getPointMapTool().pathPolyline = self.pathPolyline
          self.getPointMapTool().distanceFromStartPt = self.distanceFromStartPt
          self.getPointMapTool().doPathArray()
-      elif self.arrayType == QadARRAYCommandClassSeriesTypeEnum.POLAR: # serie polare
+      elif self.arrayType == QadARRAYCommandClassSeriesTypeEnum.POLAR: # polar array
          self.getPointMapTool().centerPt = self.centerPt
          self.getPointMapTool().polarItemsNumber = self.polarItemsNumber
          self.getPointMapTool().polarAngleBetween = self.polarAngleBetween
          self.getPointMapTool().polarRows = self.polarRows
          self.getPointMapTool().doPolarArray()
 
-      self.step = -1 * self.step # trucchetto per prendere il map tool base
+      self.step = -1 * self.step # trick to get the base map tool
 
 
    # ============================================================================
@@ -275,20 +273,20 @@ class QadARRAYCommandClass(QadCommandClass):
       self.basePt.setY(center.y())
 
 
-   # ============================================================================
+# ============================================================================
    # doRectangleArray
    # ============================================================================
    def doRectangleArray(self):
       self.plugIn.beginEditCommand("Feature copied", self.cacheEntitySet.getLayerList())
 
-      dimElaboratedList = [] # lista delle quotature già elaborate
+      dimElaboratedList = [] # list of already elaborated dimensions
       entityIterator = QadCacheEntitySetIterator(self.cacheEntitySet)
       for entity in entityIterator:
-         qadGeom = entity.getQadGeom() # così inizializzo le info qad
-         # verifico se l'entità appartiene ad uno stile di quotatura
+         qadGeom = entity.getQadGeom() # initialize qad info
+         # verify if the entity belongs to a dimension style
          dimEntity = QadDimStyles.getDimEntity(entity)
          if dimEntity is not None:
-            if appendDimEntityIfNotExisting(dimElaboratedList, dimEntity) == False: # quota già elaborata
+            if appendDimEntityIfNotExisting(dimElaboratedList, dimEntity) == False: # dimension already processed
                continue
             entity = dimEntity
 
@@ -298,7 +296,7 @@ class QadARRAYCommandClass(QadCommandClass):
             self.plugIn.destroyEditCommand()
             return
 
-      if self.delOrigSelSet: # se devo rimuovere gli oggetti originali
+      if self.delOrigSelSet: # if original objects must be removed
          entityIterator = QadCacheEntitySetIterator(self.cacheEntitySet)
          for entity in entityIterator:
             if qad_layer.deleteFeatureToLayer(self.plugIn, entity.layer, entity.featureId, False) == False:
@@ -314,14 +312,14 @@ class QadARRAYCommandClass(QadCommandClass):
    def doPathArray(self):
       self.plugIn.beginEditCommand("Feature copied", self.cacheEntitySet.getLayerList())
 
-      dimElaboratedList = [] # lista delle quotature già elaborate
+      dimElaboratedList = [] # list of already elaborated dimensions
       entityIterator = QadCacheEntitySetIterator(self.cacheEntitySet)
       for entity in entityIterator:
-         qadGeom = entity.getQadGeom() # così inizializzo le info qad
-         # verifico se l'entità appartiene ad uno stile di quotatura
+         qadGeom = entity.getQadGeom() # initialize qad info
+         # verify if the entity belongs to a dimension style
          dimEntity = QadDimStyles.getDimEntity(entity)
          if dimEntity is not None:
-            if appendDimEntityIfNotExisting(dimElaboratedList, dimEntity) == False: # quota già elaborata
+            if appendDimEntityIfNotExisting(dimElaboratedList, dimEntity) == False: # dimension already processed
                continue
             entity = dimEntity
 
@@ -331,7 +329,7 @@ class QadARRAYCommandClass(QadCommandClass):
             self.plugIn.destroyEditCommand()
             return
 
-      if self.delOrigSelSet: # se devo rimuovere gli oggetti originali
+      if self.delOrigSelSet: # if original objects must be removed
          entityIterator = QadCacheEntitySetIterator(self.cacheEntitySet)
          for entity in entityIterator:
             if qad_layer.deleteFeatureToLayer(self.plugIn, entity.layer, entity.featureId, False) == False:
@@ -347,14 +345,14 @@ class QadARRAYCommandClass(QadCommandClass):
    def doPolarArray(self):
       self.plugIn.beginEditCommand("Feature copied", self.cacheEntitySet.getLayerList())
 
-      dimElaboratedList = [] # lista delle quotature già elaborate
+      dimElaboratedList = [] # list of already elaborated dimensions
       entityIterator = QadCacheEntitySetIterator(self.cacheEntitySet)
       for entity in entityIterator:
-         qadGeom = entity.getQadGeom() # così inizializzo le info qad
-         # verifico se l'entità appartiene ad uno stile di quotatura
+         qadGeom = entity.getQadGeom() # initialize qad info
+         # verify if the entity belongs to a dimension style
          dimEntity = QadDimStyles.getDimEntity(entity)
          if dimEntity is not None:
-            if appendDimEntityIfNotExisting(dimElaboratedList, dimEntity) == False: # quota già elaborata
+            if appendDimEntityIfNotExisting(dimElaboratedList, dimEntity) == False: # dimension already processed
                continue
             entity = dimEntity
 
@@ -364,7 +362,7 @@ class QadARRAYCommandClass(QadCommandClass):
             self.plugIn.destroyEditCommand()
             return
 
-      if self.delOrigSelSet: # se devo rimuovere gli oggetti originali
+      if self.delOrigSelSet: # if original objects must be removed
          entityIterator = QadCacheEntitySetIterator(self.cacheEntitySet)
          for entity in entityIterator:
             if qad_layer.deleteFeatureToLayer(self.plugIn, entity.layer, entity.featureId, False) == False:
@@ -379,19 +377,19 @@ class QadARRAYCommandClass(QadCommandClass):
    # ============================================================================
    def setPathPolyline(self, entity, point):
       """
-      Setta self.pathPolyline che definisce la traiettoria
+      Sets self.pathPolyline that defines the path
       """
       qadGeom = entity.getQadGeom()
-      # la funzione ritorna una lista con 
-      # (<minima distanza>
-      # <punto più vicino>
-      # <indice della geometria più vicina>
-      # <indice della sotto-geometria più vicina>
-      # se geometria chiusa è tipo polyline la lista contiene anche
-      # <indice della parte della sotto-geometria più vicina>
-      # <"a sinistra di" se il punto é alla sinista della parte (< 0 -> sinistra, > 0 -> destra)
+      # the function returns a list with 
+      # (<minimum distance>
+      # <closest point>
+      # <index of closest geometry>
+      # <index of closest sub-geometry>
+      # if closed geometry is polyline type, the list also contains
+      # <index of the part of the closest sub-geometry>
+      # <"left of" if the point is to the left of the part (< 0 -> left, > 0 -> right)
       dummy = getQadGeomClosestPart(qadGeom, point)
-      # ritorna la sotto-geometria
+      # returns the sub-geometry
       subGeom = getQadGeomAt(qadGeom, dummy[2], dummy[3])
       self.pathPolyline = subGeom.copy()
       return True
@@ -401,8 +399,8 @@ class QadARRAYCommandClass(QadCommandClass):
    # setDistancesByPathItemNumberOnDivide
    # ============================================================================
    def setDistancesByPathItemNumberOnDivide(self):
-      # imposta le distanza dall'inizio della traccia e la distanza tra gli elementi
-      # quando gli elementi devono essere distribuiti uniformemente
+      # sets the distance from the beginning of the path and the distance between elements
+      # when elements must be distributed uniformly
       self.distanceBetweenCols = self.pathPolyline.length() / (self.pathItemsNumber + 1)
       self.distanceFromStartPt = self.distanceBetweenCols
 
@@ -411,8 +409,8 @@ class QadARRAYCommandClass(QadCommandClass):
    # setItemNumberByDistanceBetweenColsOnMeasure
    # ============================================================================
    def setItemNumberByDistanceBetweenColsOnMeasure(self):
-      # imposta le distanza dall'inizio della traccia e il numero di elementi
-      # quando gli elementi non devono essere distribuiti uniformemente ma a partire dall'inizio della traccia
+      # sets the distance from the beginning of the path and the number of elements
+      # when elements should not be distributed uniformly but starting from the beginning of the path
       self.pathItemsNumber = int(self.pathPolyline.length() / self.distanceBetweenCols) + 1
       self.distanceFromStartPt = 0.0
 
@@ -436,7 +434,7 @@ class QadARRAYCommandClass(QadCommandClass):
    # ============================================================================
    def waitForArrayType(self):
       self.step = QadARRAYCommandClassStepEnum.ASK_FOR_ARRAYTYPE
-      # imposto il map tool
+      # set the map tool
       self.getPointMapTool().setMode(Qad_array_maptool_ModeEnum.NONE)
 
       keyWords = QadMsg.translate("Command_ARRAY", "Rectangular") + "/" + \
@@ -454,8 +452,8 @@ class QadARRAYCommandClass(QadCommandClass):
       prompt = QadMsg.translate("Command_ARRAY", "Enter array type [{0}] <{1}>: ").format(keyWords, self.defaultValue)
       
       keyWords += "_" + englishKeyWords
-      # si appresta ad attendere un punto o enter o una parola chiave         
-      # msg, inputType, default, keyWords, nessun controllo
+      # get ready to wait for a point or enter or a keyword         
+      # msg, inputType, default, keyWords, no check
       self.waitFor(prompt, \
                    QadInputTypeEnum.KEYWORDS, \
                    self.defaultValue, \
@@ -467,9 +465,9 @@ class QadARRAYCommandClass(QadCommandClass):
    # ============================================================================
    def waitForBasePt(self, nextStep = QadARRAYCommandClassStepEnum.ASK_FOR_BASE_PT):
       self.step = nextStep 
-      # imposto il map tool
+      # set the map tool
       self.getPointMapTool().setMode(Qad_array_maptool_ModeEnum.ASK_FOR_BASE_PT)
-      # si appresta ad attendere un punto
+      # get ready to wait for a point
       self.waitForPoint(QadMsg.translate("Command_ARRAY", "Specify base point: "))
 
 
@@ -478,7 +476,7 @@ class QadARRAYCommandClass(QadCommandClass):
    # ============================================================================
    def waitForItemsNumber(self):
       self.step = QadARRAYCommandClassStepEnum.ASK_FOR_ITEM_N
-      # imposto il map tool
+      # set the map tool
       self.getPointMapTool().setMode(Qad_array_maptool_ModeEnum.NONE)
 
       if self.arrayType == QadARRAYCommandClassSeriesTypeEnum.PATH:
@@ -486,7 +484,7 @@ class QadARRAYCommandClass(QadCommandClass):
          if self.pathMethod == QadARRAYCommandClassPathMethodTypeEnum.MEASURE:
             keyWords = QadMsg.translate("Command_ARRAY", "Fill entire path")
             englishKeyWords = "Fill entire path"
-            # si appresta ad attendere un numero intero
+            # get ready to wait for an integer
             prompt = QadMsg.translate("Command_ARRAY", "Number of Items to Array or [{0}] <{1}>: ").format(keyWords, str(self.defaultValue))
             keyWords += "_" + englishKeyWords
             inputType = QadInputTypeEnum.INT | QadInputTypeEnum.KEYWORDS
@@ -496,12 +494,12 @@ class QadARRAYCommandClass(QadCommandClass):
             inputType = QadInputTypeEnum.INT
       elif self.arrayType == QadARRAYCommandClassSeriesTypeEnum.POLAR:
          self.defaultValue = self.polarItemsNumber
-         # si appresta ad attendere un numero intero
+         # get ready to wait for an integer
          keyWords = ""
          prompt = QadMsg.translate("Command_ARRAY", "Number of Items to Array <{0}>: ").format(str(self.defaultValue))
          inputType = QadInputTypeEnum.INT
       
-      # msg, inputType, default, keyWords, valori positivi
+      # msg, inputType, default, keyWords, positive values
       self.waitFor(prompt, \
                    inputType, \
                    self.defaultValue, \
@@ -514,10 +512,10 @@ class QadARRAYCommandClass(QadCommandClass):
    # ============================================================================
    def waitForRows(self, nextStep):
       self.step = nextStep
-      # imposto il map tool
+      # set the map tool
       self.getPointMapTool().setMode(Qad_array_maptool_ModeEnum.NONE)
 
-      # si appresta ad attendere un numero intero
+      # get ready to wait for an integer
       msg = QadMsg.translate("Command_ARRAY", "Specify number of rows <{0}>: ")
       if self.arrayType == QadARRAYCommandClassSeriesTypeEnum.RECTANGLE:
          self.defaultValue = self.rectangleRows
@@ -526,7 +524,7 @@ class QadARRAYCommandClass(QadCommandClass):
       elif self.arrayType == QadARRAYCommandClassSeriesTypeEnum.POLAR:
          self.defaultValue = self.polarRows
       prompt = msg.format(str(self.defaultValue))
-      # msg, inputType, default, keyWords, valori positivi
+      # msg, inputType, default, keyWords, positive values
       self.waitFor(prompt, \
                    QadInputTypeEnum.INT, \
                    self.defaultValue, \
@@ -560,7 +558,7 @@ class QadARRAYCommandClass(QadCommandClass):
          keyWords = ""
          inputType = QadInputTypeEnum.FLOAT | QadInputTypeEnum.POINT2D
       
-      # si appresta ad attendere un punto, un numero reale o enter o una parola chiave
+      # get ready to wait for a point, a real number or enter or a keyword
       # msg, inputType, default, keyWords, inputMode
       self.waitFor(prompt, \
                    inputType, \
@@ -569,7 +567,7 @@ class QadARRAYCommandClass(QadCommandClass):
                    inputMode)
       
 
-   # =========================================================================
+# =========================================================================
    # waitForDistanceBetweenRows2Pt
    # =========================================================================
    def waitForDistanceBetweenRows2Pt(self, startPt):
@@ -616,7 +614,7 @@ class QadARRAYCommandClass(QadCommandClass):
    # ============================================================================
    def waitForDelOrigObjs(self):
       self.step = QadARRAYCommandClassStepEnum.ASK_FOR_DEL_ORIG_OBJS
-      # imposto il map tool
+      # set the map tool
       self.getPointMapTool().setMode(Qad_array_maptool_ModeEnum.NONE)
 
       keyWords = QadMsg.translate("QAD", "Yes") + "/" + QadMsg.translate("QAD", "No")
@@ -626,7 +624,7 @@ class QadARRAYCommandClass(QadCommandClass):
       englishKeyWords = "Yes" + "/" + "No"
       keyWords += "_" + englishKeyWords
 
-      # msg, inputType, default, keyWords, nessun controllo
+      # msg, inputType, default, keyWords, no check
       self.waitFor(prompt, \
                    QadInputTypeEnum.KEYWORDS, \
                    self.defaultValue, \
@@ -638,7 +636,7 @@ class QadARRAYCommandClass(QadCommandClass):
    # ============================================================================
    def waitForItemsRotation(self):
       self.step = QadARRAYCommandClassStepEnum.ASK_FOR_ITEM_ROTATION
-      # imposto il map tool
+      # set the map tool
       self.getPointMapTool().setMode(Qad_array_maptool_ModeEnum.NONE)
 
       keyWords = QadMsg.translate("QAD", "Yes") + "/" + QadMsg.translate("QAD", "No")
@@ -657,7 +655,7 @@ class QadARRAYCommandClass(QadCommandClass):
       englishKeyWords = "Yes" + "/" + "No"
       keyWords += "_" + englishKeyWords
          
-      # msg, inputType, default, keyWords, nessun controllo
+      # msg, inputType, default, keyWords, no check
       self.waitFor(prompt, \
                    QadInputTypeEnum.KEYWORDS, \
                    self.defaultValue, \
@@ -665,7 +663,7 @@ class QadARRAYCommandClass(QadCommandClass):
 
 
    # ============================================================================
-   # SERIE RETTANGOLARE - INIZIO
+   # RECTANGULAR ARRAY - BEGIN
    # ============================================================================
 
 
@@ -674,7 +672,7 @@ class QadARRAYCommandClass(QadCommandClass):
    # ============================================================================
    def waitForRectangleArrayOptions(self):
       self.step = QadARRAYCommandClassStepEnum.ASK_FOR_MAIN_OPTIONS
-      # imposto il map tool
+      # set the map tool
       self.getPointMapTool().setMode(Qad_array_maptool_ModeEnum.NONE)
 
       keyWords = QadMsg.translate("Command_ARRAY", "Base point") + "/" + \
@@ -691,8 +689,8 @@ class QadARRAYCommandClass(QadCommandClass):
       self.defaultValue = QadMsg.translate("Command_ARRAY", "eXit")         
       prompt = QadMsg.translate("Command_ARRAY", "Select an option to edit array [{0}] <{1}>: ").format(keyWords, self.defaultValue)
       keyWords += "_" + englishKeyWords
-      # si appresta ad attendere un punto o enter o una parola chiave
-      # msg, inputType, default, keyWords, nessun controllo
+      # get ready to wait for a point or enter or a keyword
+      # msg, inputType, default, keyWords, no check
       self.waitFor(prompt, \
                    QadInputTypeEnum.KEYWORDS, \
                    self.defaultValue, \
@@ -706,7 +704,7 @@ class QadARRAYCommandClass(QadCommandClass):
       self.step = QadARRAYCommandClassStepEnum.ASK_FOR_ANGLE
       if self.GetAngleClass is not None:
          del self.GetAngleClass                  
-      # si appresta ad attendere l'angolo di rotazione                      
+      # get ready to wait for rotation angle                     
       self.GetAngleClass = QadGetAngleClass(self.plugIn)
       prompt = QadMsg.translate("Command_ARRAY", "Specify the angle of rotation for the row axis <{0}>: ")
       self.GetAngleClass.msg = prompt.format(str(qad_utils.toDegrees(self.rectangleAngle)))
@@ -720,14 +718,14 @@ class QadARRAYCommandClass(QadCommandClass):
    # ============================================================================
    def waitForRectangleColumns(self, nextStep):
       self.step = nextStep
-      # imposto il map tool
+      # set the map tool
       self.getPointMapTool().setMode(Qad_array_maptool_ModeEnum.NONE)
 
-      # optionFrom può essere ASK_FOR_COLUMN_COUNT o ASK_FOR_COLUMN_N
+      # optionFrom can be ASK_FOR_COLUMN_COUNT or ASK_FOR_COLUMN_N
       self.defaultValue = self.rectangleCols
-      # si appresta ad attendere un numero intero
+      # get ready to wait for an integer
       msg = QadMsg.translate("Command_ARRAY", "Specify number of columns <{0}>: ")
-      # msg, inputType, default, keyWords, valori positivi
+      # msg, inputType, default, keyWords, positive values
       self.waitFor(msg.format(str(self.defaultValue)), \
                    QadInputTypeEnum.INT, \
                    self.defaultValue, \
@@ -740,7 +738,7 @@ class QadARRAYCommandClass(QadCommandClass):
    # ============================================================================
    def waitForRectangleColumnsSpacing(self):
       self.step = QadARRAYCommandClassStepEnum.ASK_FOR_COLUMN_SPACE_OR_CELL
-      # imposto il map tool
+      # set the map tool
       self.getPointMapTool().setMode(Qad_array_maptool_ModeEnum.ASK_FOR_COLUMN_SPACE_FIRST_PT)
 
       self.defaultValue = self.distanceBetweenCols
@@ -750,8 +748,8 @@ class QadARRAYCommandClass(QadCommandClass):
       prompt = prompt.format(keyWords, str(self.defaultValue))
       keyWords += "_" + englishKeyWords
       
-      # si appresta ad attendere un punto, un numero reale o enter o una parola chiave
-      # msg, inputType, default, keyWords, valori positivi
+      # get ready to wait for a point, a real number or enter or a keyword
+      # msg, inputType, default, keyWords, positive values
       self.waitFor(prompt, \
                    QadInputTypeEnum.FLOAT | QadInputTypeEnum.POINT2D | QadInputTypeEnum.KEYWORDS, \
                    self.defaultValue, \
@@ -796,7 +794,7 @@ class QadARRAYCommandClass(QadCommandClass):
    # ============================================================================
    def waitForRectangleDistanceBetweenCols(self, totalOption):
       self.step = QadARRAYCommandClassStepEnum.ASK_FOR_COLUMN_SPACE_OR_TOT
-      # imposto il map tool
+      # set the map tool
       self.getPointMapTool().setMode(Qad_array_maptool_ModeEnum.ASK_FOR_COLUMN_SPACE_FIRST_PT)
 
       self.defaultValue = self.distanceBetweenCols
@@ -812,8 +810,8 @@ class QadARRAYCommandClass(QadCommandClass):
          keyWords = ""
          inputType = QadInputTypeEnum.FLOAT | QadInputTypeEnum.POINT2D
       
-      # si appresta ad attendere un punto, un numero reale o enter o una parola chiave
-      # msg, inputType, default, keyWords, valori positivi
+      # get ready to wait for a point, a real number or enter or a keyword
+      # msg, inputType, default, keyWords, positive values
       self.waitFor(prompt, \
                    inputType, \
                    self.defaultValue, \
@@ -826,7 +824,7 @@ class QadARRAYCommandClass(QadCommandClass):
    # ============================================================================
    def waitForRectangleFirstCellCorner(self):
       self.step = QadARRAYCommandClassStepEnum.ASK_FOR_1PT_CELL
-      # si appresta ad attendere un punto
+      # get ready to wait for a point
       self.waitForPoint(QadMsg.translate("Command_ARRAY", "Specify first cell corner: "))
       
       
@@ -835,16 +833,16 @@ class QadARRAYCommandClass(QadCommandClass):
    # ============================================================================
    def waitForRectangleSecondCellCorner(self):
       self.step = QadARRAYCommandClassStepEnum.ASK_FOR_2PT_CELL
-      # imposto il map tool
+      # set the map tool
       self.getPointMapTool().firstPt = self.firstPt
       self.getPointMapTool().setMode(Qad_array_maptool_ModeEnum.ASK_FOR_2PT_CELL)
-      # si appresta ad attendere un punto
+      # get ready to wait for a point
       self.waitForPoint(QadMsg.translate("Command_ARRAY", "Specify second cell corner: "))
 
 
    # ============================================================================
-   # SERIE RETTANGOLARE - FINE
-   # SERIE TRAIETTORIA  - INIZIO
+   # RECTANGULAR ARRAY - END
+   # PATH ARRAY - BEGIN
    # ============================================================================
 
 
@@ -859,7 +857,7 @@ class QadARRAYCommandClass(QadCommandClass):
       
       self.entSelClass = QadEntSelClass(self.plugIn)
       self.entSelClass.msg = QadMsg.translate("Command_ARRAY", "Select the object to use for the path of the array: ")
-      # scarto la selezione di punti e quote
+      # filter out points and dimensions
       self.entSelClass.checkPointLayer = False
       self.entSelClass.checkLineLayer = True
       self.entSelClass.checkPolygonLayer = True
@@ -873,7 +871,7 @@ class QadARRAYCommandClass(QadCommandClass):
    # ============================================================================
    def waitForPathArrayOptions(self):
       self.step = QadARRAYCommandClassStepEnum.ASK_FOR_MAIN_OPTIONS
-      # imposto il map tool
+      # set the map tool
       self.getPointMapTool().setMode(Qad_array_maptool_ModeEnum.NONE)
 
       keyWords = QadMsg.translate("Command_ARRAY", "Method") + "/" + \
@@ -889,8 +887,8 @@ class QadARRAYCommandClass(QadCommandClass):
       self.defaultValue = QadMsg.translate("Command_ARRAY", "eXit")         
       prompt = QadMsg.translate("Command_ARRAY", "Select an option to edit array [{0}] <{1}>: ").format(keyWords, self.defaultValue)
       keyWords += "_" + englishKeyWords
-      # si appresta ad attendere un punto o enter o una parola chiave
-      # msg, inputType, default, keyWords, nessun controllo
+      # get ready to wait for a point or enter or a keyword
+      # msg, inputType, default, keyWords, no check
       self.waitFor(prompt, \
                    QadInputTypeEnum.KEYWORDS, \
                    self.defaultValue, \
@@ -913,13 +911,13 @@ class QadARRAYCommandClass(QadCommandClass):
       englishKeyWords = "Divide" + "/" + "Measure"
       keyWords += "_" + englishKeyWords
 
-      # si appresta ad attendere enter o una parola chiave
-      # msg, inputType, default, keyWords, nessun controllo
+      # get ready to wait for enter or a keyword
+      # msg, inputType, default, keyWords, no check
       self.waitFor(prompt, \
                    QadInputTypeEnum.KEYWORDS, \
                    self.defaultValue, \
                    keyWords, QadInputModeEnum.NONE)
-
+#  BRAD START HERE - NOT DONE
 
    # ============================================================================
    # waitForPathTangentDirection
