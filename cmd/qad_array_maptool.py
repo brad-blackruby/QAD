@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 """
 /***************************************************************************
- QAD Quantum Aided Design plugin ok
+ QAD Quantum Aided Design plugin
 
- classe per gestire il map tool in ambito del comando array
+ Class to manage the map tool in the context of the array command
  
                               -------------------
-        begin                : 2016-05-31
+        begin                : 2025-05-10
         copyright            : iiiii
-        email                : hhhhh
-        developers           : bbbbb aaaaa ggggg
+        email                : brad@blackruby.dev
+        developers           : Brad, ClaudeAI
  ***************************************************************************/
 
 /***************************************************************************
@@ -35,17 +35,17 @@ from .. import qad_array_fun
 # Qad_array_maptool_ModeEnum class.
 # ===============================================================================
 class Qad_array_maptool_ModeEnum():
-   # non si richiede niente
+   # nothing is requested
    NONE = 0
-   # si richiede il punto base
+   # base point is requested
    ASK_FOR_BASE_PT = 1
-   # si richiede il primo punto per la distanza tra colonne
+   # first point for the distance between columns is requested
    ASK_FOR_COLUMN_SPACE_FIRST_PT = 2
-   # si richiede il primo punto per la dimensione della cella
+   # first point for the cell dimension is requested
    ASK_FOR_1PT_CELL = 3
-   # si richiede il psecondo punto per la dimensione della cella
+   # second point for the cell dimension is requested
    ASK_FOR_2PT_CELL = 4
-   # si richiede il primo punto per la distanza tra righe
+   # first point for the distance between rows is requested
    ASK_FOR_ROW_SPACE_FIRST_PT = 5
 
 
@@ -64,19 +64,19 @@ class Qad_array_maptool(QadGetPoint):
       self.distanceBetweenCols = None
       self.itemsRotation = None
 
-      # serie rettangolare
+      # rectangular array
       self.rectangleAngle = None
       self.rectangleCols = None
       self.rectangleRows = None
       self.firstPt = None
 
-      # serie traiettoria
+      # path array
       self.pathTangentDirection = None
       self.pathRows = None
       self.pathItemsNumber = None
       self.pathPolyline = None
 
-      # serie polare
+      # polar array
       self.centerPt = None
       self.polarItemsNumber = None
       self.polarAngleBetween = None
@@ -104,14 +104,14 @@ class Qad_array_maptool(QadGetPoint):
    def doRectangleArray(self):
       self.__highlight.reset()
 
-      dimElaboratedList = [] # lista delle quotature già elaborate
+      dimElaboratedList = [] # list of already processed dimension styles
       entityIterator = QadCacheEntitySetIterator(self.cacheEntitySet)
       for entity in entityIterator:
-         qadGeom = entity.getQadGeom().copy() # così inizializzo le info qad
-         # verifico se l'entità appartiene ad uno stile di quotatura
+         qadGeom = entity.getQadGeom().copy() # initializing qad info
+         # verify if the entity belongs to a dimension style
          dimEntity = QadDimStyles.getDimEntity(entity)
          if dimEntity is not None:
-            if appendDimEntityIfNotExisting(dimElaboratedList, dimEntity) == False: # quota già elaborata
+            if appendDimEntityIfNotExisting(dimElaboratedList, dimEntity) == False: # dimension already processed
                continue
             entity = dimEntity
 
@@ -127,14 +127,14 @@ class Qad_array_maptool(QadGetPoint):
    def doPathArray(self):
       self.__highlight.reset()
 
-      dimElaboratedList = [] # lista delle quotature già elaborate
+      dimElaboratedList = [] # list of already processed dimension styles
       entityIterator = QadCacheEntitySetIterator(self.cacheEntitySet)
       for entity in entityIterator:
-         qadGeom = entity.getQadGeom().copy() # così inizializzo le info qad
-         # verifico se l'entità appartiene ad uno stile di quotatura
+         qadGeom = entity.getQadGeom().copy() # initializing qad info
+         # verify if the entity belongs to a dimension style
          dimEntity = QadDimStyles.getDimEntity(entity)
          if dimEntity is not None:
-            if appendDimEntityIfNotExisting(dimElaboratedList, dimEntity) == False: # quota già elaborata
+            if appendDimEntityIfNotExisting(dimElaboratedList, dimEntity) == False: # dimension already processed
                continue
             entity = dimEntity
 
@@ -151,14 +151,14 @@ class Qad_array_maptool(QadGetPoint):
    def doPolarArray(self):
       self.__highlight.reset()
 
-      dimElaboratedList = [] # lista delle quotature già elaborate
+      dimElaboratedList = [] # list of already processed dimension styles
       entityIterator = QadCacheEntitySetIterator(self.cacheEntitySet)
       for entity in entityIterator:
-         qadGeom = entity.getQadGeom().copy() # così inizializzo le info qad
-         # verifico se l'entità appartiene ad uno stile di quotatura
+         qadGeom = entity.getQadGeom().copy() # initializing qad info
+         # verify if the entity belongs to a dimension style
          dimEntity = QadDimStyles.getDimEntity(entity)
          if dimEntity is not None:
-            if appendDimEntityIfNotExisting(dimElaboratedList, dimEntity) == False: # quota già elaborata
+            if appendDimEntityIfNotExisting(dimElaboratedList, dimEntity) == False: # dimension already processed
                continue
             entity = dimEntity
 
@@ -171,7 +171,7 @@ class Qad_array_maptool(QadGetPoint):
    def canvasMoveEvent(self, event):
       QadGetPoint.canvasMoveEvent(self, event)
       
-#       # noto il punto base si richiede il secondo punto
+#       # when base point is known, the second point is requested
 #       if self.mode == Qad_array_maptool_ModeEnum.BASE_PT_KNOWN_ASK_FOR_COPY_PT:
 #          self.setCopiedGeometries(self.tmpPoint)                           
          
@@ -181,7 +181,7 @@ class Qad_array_maptool(QadGetPoint):
       self.__highlight.show()          
 
    def deactivate(self):
-      try: # necessario perché se si chiude QGIS parte questo evento nonostante non ci sia più l'oggetto maptool !
+      try: # necessary because if QGIS is closed this event is triggered despite the maptool object is no longer available!
          QadGetPoint.deactivate(self)
          self.__highlight.hide()
       except:
@@ -189,34 +189,34 @@ class Qad_array_maptool(QadGetPoint):
 
    def setMode(self, mode):
       self.mode = mode
-      # non si richiede niente
+      # nothing is requested
       if self.mode == Qad_array_maptool_ModeEnum.NONE:
          self.setSelectionMode(QadGetPointSelectionModeEnum.NONE)
          self.setDrawMode(QadGetPointDrawModeEnum.NONE)
-      # si richiede il punto base
+      # base point is requested
       elif self.mode == Qad_array_maptool_ModeEnum.ASK_FOR_BASE_PT:
          self.setSelectionMode(QadGetPointSelectionModeEnum.POINT_SELECTION)
          self.setDrawMode(QadGetPointDrawModeEnum.NONE)
-      # si richiede il primo punto per la distanza tra colonne
+      # first point for the distance between columns is requested
       elif self.mode == Qad_array_maptool_ModeEnum.ASK_FOR_COLUMN_SPACE_FIRST_PT:
          self.setSelectionMode(QadGetPointSelectionModeEnum.POINT_SELECTION)
          self.setDrawMode(QadGetPointDrawModeEnum.NONE)
-      # si richiede il primo punto per la dimensione della cella
+      # first point for the cell dimension is requested
       elif self.mode == Qad_array_maptool_ModeEnum.ASK_FOR_1PT_CELL:
          self.setSelectionMode(QadGetPointSelectionModeEnum.POINT_SELECTION)
          self.setDrawMode(QadGetPointDrawModeEnum.NONE)
-      # si richiede il psecondo punto per la dimensione della cella
+      # second point for the cell dimension is requested
       elif self.mode == Qad_array_maptool_ModeEnum.ASK_FOR_2PT_CELL:
          self.setSelectionMode(QadGetPointSelectionModeEnum.POINT_SELECTION)
          self.setDrawMode(QadGetPointDrawModeEnum.ELASTIC_RECTANGLE)
          self.setStartPoint(self.firstPt)
-      # si richiede il primo punto per la distanza tra righe
+      # first point for the distance between rows is requested
       elif self.mode == Qad_array_maptool_ModeEnum.ASK_FOR_ROW_SPACE_FIRST_PT:
          self.setSelectionMode(QadGetPointSelectionModeEnum.POINT_SELECTION)
          self.setDrawMode(QadGetPointDrawModeEnum.NONE)
 
 
-      # si richiede il secondo punto per la distanza tra colonne
+      # second point for the distance between columns is requested
 #       elif self.mode == Qad_array_maptool_ModeEnum.ASK_FOR_COLUMN_SPACE_SECOND_PT:
 #          self.setDrawMode(QadGetPointDrawModeEnum.ELASTIC_LINE)
 #          self.setStartPoint(self.firstPt)
