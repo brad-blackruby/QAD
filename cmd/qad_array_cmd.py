@@ -917,9 +917,8 @@ class QadARRAYCommandClass(QadCommandClass):
                    QadInputTypeEnum.KEYWORDS, \
                    self.defaultValue, \
                    keyWords, QadInputModeEnum.NONE)
-#  BRAD START HERE - NOT DONE
 
-   # ============================================================================
+# ============================================================================
    # waitForPathTangentDirection
    # ============================================================================
    def waitForPathTangentDirection(self):
@@ -927,7 +926,7 @@ class QadARRAYCommandClass(QadCommandClass):
       
       if self.GetAngleClass is not None:
          del self.GetAngleClass                  
-      # si appresta ad attendere l'angolo di rotazione                      
+      # get ready to wait for rotation angle                      
       self.GetAngleClass = QadGetAngleClass(self.plugIn)
       prompt = QadMsg.translate("Command_ARRAY", "Specify the first point for array tangent direction: ")
       self.GetAngleClass.msg = prompt.format(str(qad_utils.toDegrees(self.pathTangentDirection)))
@@ -953,8 +952,8 @@ class QadARRAYCommandClass(QadCommandClass):
 
 
    # ============================================================================
-   # SERIE TRAIETTORIA  - FINE
-   # SERIE POLARE       - INIZIO
+   # PATH ARRAY - END
+   # POLAR ARRAY - BEGIN
    # ============================================================================
 
 
@@ -968,8 +967,8 @@ class QadARRAYCommandClass(QadCommandClass):
       englishKeyWords = "Base point"
       prompt = QadMsg.translate("Command_ARRAY", "Specify center point of array or [{0}]: ").format(keyWords)
       keyWords += "_" + englishKeyWords
-      # si appresta ad attendere un punto o enter o una parola chiave         
-      # msg, inputType, default, keyWords, nessun controllo
+      # get ready to wait for a point or enter or a keyword         
+      # msg, inputType, default, keyWords, no check
       self.waitFor(prompt, \
                    QadInputTypeEnum.POINT2D | QadInputTypeEnum.KEYWORDS, \
                    None, \
@@ -981,7 +980,7 @@ class QadARRAYCommandClass(QadCommandClass):
    # ============================================================================
    def waitForPolarArrayOptions(self):
       self.step = QadARRAYCommandClassStepEnum.ASK_FOR_MAIN_OPTIONS
-      # imposto il map tool
+      # set the map tool
       self.getPointMapTool().setMode(Qad_array_maptool_ModeEnum.NONE)
 
       keyWords = QadMsg.translate("Command_ARRAY", "Base point") + "/" + \
@@ -997,8 +996,8 @@ class QadARRAYCommandClass(QadCommandClass):
       self.defaultValue = QadMsg.translate("Command_ARRAY", "eXit")         
       prompt = QadMsg.translate("Command_ARRAY", "Select an option to edit array [{0}] <{1}>: ").format(keyWords, self.defaultValue)
       keyWords += "_" + englishKeyWords
-      # si appresta ad attendere un punto o enter o una parola chiave         
-      # msg, inputType, default, keyWords, nessun controllo
+      # get ready to wait for a point or enter or a keyword         
+      # msg, inputType, default, keyWords, no check
       self.waitFor(prompt, \
                    QadInputTypeEnum.KEYWORDS, \
                    self.defaultValue, \
@@ -1013,7 +1012,7 @@ class QadARRAYCommandClass(QadCommandClass):
       
       if self.GetAngleClass is not None:
          del self.GetAngleClass                  
-      # si appresta ad attendere l'angolo di rotazione                      
+      # get ready to wait for rotation angle                      
       self.GetAngleClass = QadGetAngleClass(self.plugIn)
       prompt = QadMsg.translate("Command_ARRAY", "Specify the angle between items <{0}>: ")
       self.GetAngleClass.msg = prompt.format(str(qad_utils.toDegrees(self.polarAngleBetween)))
@@ -1030,7 +1029,7 @@ class QadARRAYCommandClass(QadCommandClass):
       
       if self.GetAngleClass is not None:
          del self.GetAngleClass                  
-      # si appresta ad attendere l'angolo di rotazione                      
+      # get ready to wait for rotation angle                      
       self.GetAngleClass = QadGetAngleClass(self.plugIn)
       default = self.polarItemsNumber * self.polarAngleBetween
       prompt = QadMsg.translate("Command_ARRAY", "Specify angle to fill (+ = CCW, - = CW) <{0}>: ")
@@ -1041,7 +1040,7 @@ class QadARRAYCommandClass(QadCommandClass):
 
 
    # ============================================================================
-   # SERIE POLARE - FINE
+   # POLAR ARRAY - END
    # ============================================================================
 
 
@@ -1051,40 +1050,40 @@ class QadARRAYCommandClass(QadCommandClass):
    def run(self, msgMapTool = False, msg = None):
       if self.plugIn.canvas.mapSettings().destinationCrs().isGeographic():
          self.showMsg(QadMsg.translate("QAD", "\nThe coordinate reference system of the project must be a projected coordinate system.\n"))
-         return True # fine comando
+         return True # end command
             
       # =========================================================================
-      # RICHIESTA SELEZIONE OGGETTI
-      if self.step == QadARRAYCommandClassStepEnum.ASK_FOR_SELSET: # inizio del comando
-         if self.cacheEntitySet.isEmpty() == False: # se era già stato impostato da codice tramite "self.setEntitySet"
+      # OBJECT SELECTION REQUEST
+      if self.step == QadARRAYCommandClassStepEnum.ASK_FOR_SELSET: # start of command
+         if self.cacheEntitySet.isEmpty() == False: # if it had already been set by code via "self.setEntitySet"
             self.waitForArrayType()
             return False
             
          if self.SSGetClass.run(msgMapTool, msg) == True:
             if self.SSGetClass.entitySet.count() == 0:
-               return True # fine comando
+               return True # end command
             self.setEntitySet(self.SSGetClass.entitySet)
             
             del self.SSGetClass
             self.SSGetClass = None
             
             self.waitForArrayType()
-            self.step = -1 * self.step # trucchetto per prendere il map tool base
-            self.getPointMapTool().refreshSnapType() # aggiorno lo snapType che può essere variato dal maptool di selezione entità                    
-            self.step = -1 * self.step # trucchetto per prendere il map tool base
+            self.step = -1 * self.step # trick to get the base map tool
+            self.getPointMapTool().refreshSnapType() # update snapType that can be varied by entity selection maptool                    
+            self.step = -1 * self.step # trick to get the base map tool
             
          return False
          
       # =========================================================================
-      # RISPOSTA ALLA RICHIESTA DEL TIPO DI SERIE (da step = ASK_FOR_SELSET)
-      elif self.step == QadARRAYCommandClassStepEnum.ASK_FOR_ARRAYTYPE: # dopo aver atteso una parola chiave si riavvia il comando
-         if msgMapTool == True: # il punto arriva da una selezione grafica
-            if self.getPointMapTool().rightButton == True: # se usato il tasto destro del mouse
+      # RESPONSE TO ARRAY TYPE REQUEST (from step = ASK_FOR_SELSET)
+      elif self.step == QadARRAYCommandClassStepEnum.ASK_FOR_ARRAYTYPE: # after waiting for a keyword restart the command
+         if msgMapTool == True: # the point comes from a graphic selection
+            if self.getPointMapTool().rightButton == True: # if right mouse button
                value = self.defaultValue 
             else:
-               self.setMapTool(self.getPointMapTool()) # riattivo il maptool
+               self.setMapTool(self.getPointMapTool()) # reactivate the maptool
                return False
-         else: # la parola chiave arriva come parametro della funzione
+         else: # the keyword comes as a parameter of the function
             value = msg
 
          if type(value) == unicode:
@@ -1104,15 +1103,15 @@ class QadARRAYCommandClass(QadCommandClass):
          return False 
          
       # =========================================================================
-      # RISPOSTA ALLA RICHIESTA DI UN OPZIONE DAL MENU PRINCIPALE (da step = ASK_FOR_ARRAYTYPE da tutte le opzioni)
-      elif self.step == QadARRAYCommandClassStepEnum.ASK_FOR_MAIN_OPTIONS: # dopo aver atteso un punto o una parola chiave si riavvia il comando
-         if msgMapTool == True: # il punto arriva da una selezione grafica
-            if self.getPointMapTool().rightButton == True: # se usato il tasto destro del mouse
+      # RESPONSE TO OPTION REQUEST FROM MAIN MENU (from step = ASK_FOR_ARRAYTYPE from all options)
+      elif self.step == QadARRAYCommandClassStepEnum.ASK_FOR_MAIN_OPTIONS: # after waiting for a point or a keyword restart the command
+         if msgMapTool == True: # the point comes from a graphic selection
+            if self.getPointMapTool().rightButton == True: # if right mouse button
                value = self.defaultValue 
             else:
-               self.setMapTool(self.getPointMapTool()) # riattivo il maptool
+               self.setMapTool(self.getPointMapTool()) # reactivate the maptool
                return False
-         else: # il punto arriva come parametro della funzione
+         else: # the point comes as a parameter of the function
             value = msg
 
          if value is None:
@@ -1139,7 +1138,7 @@ class QadARRAYCommandClass(QadCommandClass):
                      self.waitForDelOrigObjs()
                   else:                  
                      self.doRectangleArray()
-                     return True # fine comando
+                     return True # end command
                
             elif self.arrayType == QadARRAYCommandClassSeriesTypeEnum.PATH:
                if value == QadMsg.translate("Command_ARRAY", "Method") or value == "Method":
@@ -1162,7 +1161,7 @@ class QadARRAYCommandClass(QadCommandClass):
                      self.waitForDelOrigObjs()
                   else:                  
                      self.doPathArray()
-                     return True # fine comando
+                     return True # end command
                   
             elif self.arrayType == QadARRAYCommandClassSeriesTypeEnum.POLAR:
                if value ==  QadMsg.translate("Command_ARRAY", "Base point") or value == "Base point":
@@ -1182,30 +1181,30 @@ class QadARRAYCommandClass(QadCommandClass):
                      self.waitForDelOrigObjs()
                   else:                  
                      self.doPolarArray()
-                     return True # fine comando                  
-         elif type(value) == QgsPointXY: # se é stato indicato un punto
+                     return True # end command                  
+         elif type(value) == QgsPointXY: # if a point was specified
             pass
          
          return False
 
 
-      # =========================================================================
-      # RISPOSTA ALLA RICHIESTA DEL PUNTO BASE (da step = ASK_FOR_MAIN_OPTIONS)
-      elif self.step == QadARRAYCommandClassStepEnum.ASK_FOR_BASE_PT: # dopo aver atteso un punto si riavvia il comando
-         if msgMapTool == True: # il punto arriva da una selezione grafica
-            # la condizione seguente si verifica se durante la selezione di un punto
-            # é stato attivato un altro plugin che ha disattivato Qad
-            # quindi stato riattivato il comando che torna qui senza che il maptool
-            # abbia selezionato un punto            
-            if self.getPointMapTool().point is None: # il maptool é stato attivato senza un punto
-               if self.getPointMapTool().rightButton == True: # se usato il tasto destro del mouse
-                  return True # fine comando
+   # =========================================================================
+      # RESPONSE TO BASE POINT REQUEST (from step = ASK_FOR_MAIN_OPTIONS)
+      elif self.step == QadARRAYCommandClassStepEnum.ASK_FOR_BASE_PT: # after waiting for a point restart the command
+         if msgMapTool == True: # the point comes from a graphic selection
+            # the following condition occurs if during selection of a point
+            # another plugin was activated that deactivated Qad
+            # then reactivated the command which returns here without the maptool
+            # having selected a point            
+            if self.getPointMapTool().point is None: # the maptool was activated without a point
+               if self.getPointMapTool().rightButton == True: # if right mouse button
+                  return True # end command
                else:
-                  self.setMapTool(self.getPointMapTool()) # riattivo il maptool
+                  self.setMapTool(self.getPointMapTool()) # reactivate the maptool
                   return False
 
             value = self.getPointMapTool().point
-         else: # il punto arriva come parametro della funzione
+         else: # the point comes as a parameter of the function
             value = msg
 
          self.basePt.set(value.x(), value.y())
@@ -1215,16 +1214,16 @@ class QadARRAYCommandClass(QadCommandClass):
 
 
       # =========================================================================
-      # RISPOSTA ALLA RICHIESTA DI CANCELLAZIONE DEGLI OGGETTI ORIGINALI (da step = ASK_FOR_MAIN_OPTIONS)
-      elif self.step == QadARRAYCommandClassStepEnum.ASK_FOR_DEL_ORIG_OBJS: # dopo aver atteso una parola chiave si riavvia il comando
-         if msgMapTool == True: # il punto arriva da una selezione grafica
-            if self.getPointMapTool().rightButton == True: # se usato il tasto destro del mouse
+      # RESPONSE TO ORIGINAL OBJECT DELETION REQUEST (from step = ASK_FOR_MAIN_OPTIONS)
+      elif self.step == QadARRAYCommandClassStepEnum.ASK_FOR_DEL_ORIG_OBJS: # after waiting for a keyword restart the command
+         if msgMapTool == True: # the point comes from a graphic selection
+            if self.getPointMapTool().rightButton == True: # if right mouse button
                value = self.defaultValue 
             else:
-               self.setMapTool(self.getPointMapTool()) # riattivo il maptool
+               self.setMapTool(self.getPointMapTool()) # reactivate the maptool
                return False
          else:
-            # la parola chiave arriva come parametro della funzione
+            # the keyword comes as a parameter of the function
             value = msg
 
          if type(value) == unicode:
@@ -1246,7 +1245,7 @@ class QadARRAYCommandClass(QadCommandClass):
 
 
       # =========================================================================
-      # RISPOSTA ALLA RICHIESTA DELL'ANGOLO DELLA SERIE (da step = ASK_FOR_MAIN_OPTIONS)
+      # RESPONSE TO ARRAY ANGLE REQUEST (from step = ASK_FOR_MAIN_OPTIONS)
       # =========================================================================
       elif self.step == QadARRAYCommandClassStepEnum.ASK_FOR_ANGLE:
          if self.GetAngleClass.run(msgMapTool, msg) == True:
@@ -1260,17 +1259,17 @@ class QadARRAYCommandClass(QadCommandClass):
 
 
       # =========================================================================
-      # RISPOSTA ALLA RICHIESTA DEL NUMERO DELLE COLONNE DELLA SERIE RETTANGOLO OPZIONE COUNT (da step = ASK_FOR_MAIN_OPTIONS)
+      # RESPONSE TO NUMBER OF COLUMNS REQUEST FOR RECTANGLE ARRAY COUNT OPTION (from step = ASK_FOR_MAIN_OPTIONS)
       # =========================================================================
-      elif self.step == QadARRAYCommandClassStepEnum.ASK_FOR_COLUMN_COUNT: # dopo aver atteso un numero intero si riavvia il comando
-         if msgMapTool == True: # il punto arriva da una selezione grafica
-            if self.getPointMapTool().rightButton == True: # se usato il tasto destro del mouse
+      elif self.step == QadARRAYCommandClassStepEnum.ASK_FOR_COLUMN_COUNT: # after waiting for an integer restart the command
+         if msgMapTool == True: # the point comes from a graphic selection
+            if self.getPointMapTool().rightButton == True: # if right mouse button
                value = self.defaultValue 
             else:
-               self.setMapTool(self.getPointMapTool()) # riattivo il maptool
+               self.setMapTool(self.getPointMapTool()) # reactivate the maptool
                return False
          else:
-            # il numero di colonne arriva come parametro della funzione
+            # column count comes as a parameter of the function
             value = msg
 
          maxArray = QadVariables.get(QadMsg.translate("Environment variables", "MAXARRAY"))
@@ -1286,17 +1285,17 @@ class QadARRAYCommandClass(QadCommandClass):
 
 
       # =========================================================================
-      # RISPOSTA ALLA RICHIESTA DEL NUMERO DI RIGHE DELLA SERIE RETTANGOLO OPZIONE COUNT (da step = ASK_FOR_COLUMN_N)
+      # RESPONSE TO ROW COUNT REQUEST FOR RECTANGLE ARRAY COUNT OPTION (from step = ASK_FOR_COLUMN_N)
       # =========================================================================
-      elif self.step == QadARRAYCommandClassStepEnum.ASK_FOR_ROW_COUNT: # dopo aver atteso un numero intero si riavvia il comando
-         if msgMapTool == True: # il punto arriva da una selezione grafica
-            if self.getPointMapTool().rightButton == True: # se usato il tasto destro del mouse
+      elif self.step == QadARRAYCommandClassStepEnum.ASK_FOR_ROW_COUNT: # after waiting for an integer restart the command
+         if msgMapTool == True: # the point comes from a graphic selection
+            if self.getPointMapTool().rightButton == True: # if right mouse button
                value = self.defaultValue 
             else:
-               self.setMapTool(self.getPointMapTool()) # riattivo il maptool
+               self.setMapTool(self.getPointMapTool()) # reactivate the maptool
                return False
          else:
-            # il numero di righe arriva come parametro della funzione
+            # row count comes as a parameter of the function
             value = msg
 
          maxArray = QadVariables.get(QadMsg.translate("Environment variables", "MAXARRAY"))
@@ -1311,30 +1310,30 @@ class QadARRAYCommandClass(QadCommandClass):
 
 
       # =========================================================================
-      # RISPOSTA ALLA RICHIESTA DELLA DISTANZA TRA COLONNE (da step = ASK_FOR_MAIN_OPTIONS)
-      elif self.step == QadARRAYCommandClassStepEnum.ASK_FOR_COLUMN_SPACE_OR_CELL: # dopo aver atteso un punto, un numero o una parola chiave si riavvia il comando
-         if msgMapTool == True: # il punto arriva da una selezione grafica
-            # la condizione seguente si verifica se durante la selezione di un punto
-            # é stato attivato un altro plugin che ha disattivato Qad
-            # quindi stato riattivato il comando che torna qui senza che il maptool
-            # abbia selezionato un punto            
-            if self.getPointMapTool().point is None: # il maptool é stato attivato senza un punto
-               if self.getPointMapTool().rightButton == True: # se usato il tasto destro del mouse
+      # RESPONSE TO DISTANCE BETWEEN COLUMNS REQUEST (from step = ASK_FOR_MAIN_OPTIONS)
+      elif self.step == QadARRAYCommandClassStepEnum.ASK_FOR_COLUMN_SPACE_OR_CELL: # after waiting for a point, a number or a keyword restart the command
+         if msgMapTool == True: # the point comes from a graphic selection
+            # the following condition occurs if during selection of a point
+            # another plugin was activated that deactivated Qad
+            # then reactivated the command which returns here without the maptool
+            # having selected a point            
+            if self.getPointMapTool().point is None: # the maptool was activated without a point
+               if self.getPointMapTool().rightButton == True: # if right mouse button
                   value = self.defaultValue 
                else:
-                  self.setMapTool(self.getPointMapTool()) # riattivo il maptool
+                  self.setMapTool(self.getPointMapTool()) # reactivate the maptool
                   return False
             else:
                value = self.getPointMapTool().point
-         else: # il punto arriva come parametro della funzione
+         else: # the point comes as a parameter of the function
             value = msg
 
-         if type(value) == QgsPointXY: # se é stato inserito il primo punto per misurare la distanza tra colonne
+         if type(value) == QgsPointXY: # if first point was entered to measure the distance between columns
             self.waitForRectangleColumnsSpacing2Pt(value)
-         elif type(value) == float: # se é stato inserita la distanza
+         elif type(value) == float: # if distance was entered
             self.distanceBetweenCols = value
             self.updatePointMapToolParams()
-            self.waitForDistanceBetweenRows(False, QadARRAYCommandClassStepEnum.ASK_FOR_ROW_SPACE) # senza opzione di "totale"
+            self.waitForDistanceBetweenRows(False, QadARRAYCommandClassStepEnum.ASK_FOR_ROW_SPACE) # without "total" option
          elif type(value) == unicode:
             if value == QadMsg.translate("Command_ARRAY", "Unit cell") or value == "Unit cell":
                self.waitForRectangleFirstCellCorner()
@@ -1343,8 +1342,8 @@ class QadARRAYCommandClass(QadCommandClass):
 
 
       # =========================================================================
-      # RISPOSTA ALLA RICHIESTA DEL SECONDO PT PER MISURARE LA DISTANZA TRA COLONNE (da step = ASK_FOR_COLUMN_SPACE_OR_CELL)
-      elif self.step == QadARRAYCommandClassStepEnum.ASK_FOR_COLUMN_SPACE_2PT: # dopo aver atteso un punto si riavvia il comando
+      # RESPONSE TO SECOND POINT REQUEST FOR MEASURING DISTANCE BETWEEN COLUMNS (from step = ASK_FOR_COLUMN_SPACE_OR_CELL)
+      elif self.step == QadARRAYCommandClassStepEnum.ASK_FOR_COLUMN_SPACE_2PT: # after waiting for a point restart the command
          if self.GetDistClass.run(msgMapTool, msg) == True:
             if self.GetDistClass.dist is not None:
                self.distanceBetweenCols = self.GetDistClass.dist
@@ -1353,40 +1352,40 @@ class QadARRAYCommandClass(QadCommandClass):
             self.GetDistClass = None
             
             self.updatePointMapToolParams()
-            self.waitForDistanceBetweenRows(False, QadARRAYCommandClassStepEnum.ASK_FOR_ROW_SPACE) # senza opzione di "totale"
-         return False # fine comando
+            self.waitForDistanceBetweenRows(False, QadARRAYCommandClassStepEnum.ASK_FOR_ROW_SPACE) # without "total" option
+         return False # end command
 
 
       # =========================================================================
-      # RISPOSTA ALLA RICHIESTA DELLA DISTANZA TRA RIGHE (da step = ASK_FOR_COLUMN_SPACE_OR_CELL)
-      elif self.step == QadARRAYCommandClassStepEnum.ASK_FOR_ROW_SPACE: # dopo aver atteso un punto si riavvia il comando
-         if msgMapTool == True: # il punto arriva da una selezione grafica
-            # la condizione seguente si verifica se durante la selezione di un punto
-            # é stato attivato un altro plugin che ha disattivato Qad
-            # quindi stato riattivato il comando che torna qui senza che il maptool
-            # abbia selezionato un punto            
-            if self.getPointMapTool().point is None: # il maptool é stato attivato senza un punto
-               if self.getPointMapTool().rightButton == True: # se usato il tasto destro del mouse
+      # RESPONSE TO DISTANCE BETWEEN ROWS REQUEST (from step = ASK_FOR_COLUMN_SPACE_OR_CELL)
+      elif self.step == QadARRAYCommandClassStepEnum.ASK_FOR_ROW_SPACE: # after waiting for a point restart the command
+         if msgMapTool == True: # the point comes from a graphic selection
+            # the following condition occurs if during selection of a point
+            # another plugin was activated that deactivated Qad
+            # then reactivated the command which returns here without the maptool
+            # having selected a point            
+            if self.getPointMapTool().point is None: # the maptool was activated without a point
+               if self.getPointMapTool().rightButton == True: # if right mouse button
                   value = self.defaultValue 
                else:
-                  self.setMapTool(self.getPointMapTool()) # riattivo il maptool
+                  self.setMapTool(self.getPointMapTool()) # reactivate the maptool
                   return False
             else:
                value = self.getPointMapTool().point
-         else: # il punto arriva come parametro della funzione
+         else: # the point comes as a parameter of the function
             value = msg
 
-         if type(value) == QgsPointXY: # se é stato inserito il primo punto per misurare la distanza tra righe
+         if type(value) == QgsPointXY: # if first point was entered to measure the distance between rows
             self.waitForDistanceBetweenRows2Pt(value)
-         elif type(value) == float: # se é stato inserita la distanza
+         elif type(value) == float: # if distance was entered
             self.distanceBetweenRows = value
             self.waitForMainOptions()
-         return False # fine comando
+         return False # end command
 
 
       # =========================================================================
-      # RISPOSTA ALLA RICHIESTA DEL SECONDO PT PER MISURARE LA DISTANZA TRA RIGHE (da step = ASK_FOR_ROW_SPACE)
-      elif self.step == QadARRAYCommandClassStepEnum.ASK_FOR_ROW_SPACE_2PT: # dopo aver atteso un punto si riavvia il comando
+      # RESPONSE TO SECOND POINT REQUEST FOR MEASURING DISTANCE BETWEEN ROWS (from step = ASK_FOR_ROW_SPACE)
+      elif self.step == QadARRAYCommandClassStepEnum.ASK_FOR_ROW_SPACE_2PT: # after waiting for a point restart the command
          if self.GetDistClass.run(msgMapTool, msg) == True:
             if self.GetDistClass.dist is not None:
                self.distanceBetweenRows = self.GetDistClass.dist
@@ -1394,54 +1393,54 @@ class QadARRAYCommandClass(QadCommandClass):
             del self.GetDistClass
             self.GetDistClass = None
             self.waitForMainOptions()
-         return False # fine comando
+         return False # end command
 
 
       # =========================================================================
-      # RISPOSTA ALLA RICHIESTA DEL PRIMO ANGOLO DELLA CELLA (da step = ASK_FOR_COLUMN_SPACE_OR_CELL)
-      elif self.step == QadARRAYCommandClassStepEnum.ASK_FOR_1PT_CELL: # dopo aver atteso un punto si riavvia il comando
-         if msgMapTool == True: # il punto arriva da una selezione grafica
-            # la condizione seguente si verifica se durante la selezione di un punto
-            # é stato attivato un altro plugin che ha disattivato Qad
-            # quindi stato riattivato il comando che torna qui senza che il maptool
-            # abbia selezionato un punto            
-            if self.getPointMapTool().point is None: # il maptool é stato attivato senza un punto
-               if self.getPointMapTool().rightButton == True: # se usato il tasto destro del mouse
-                  return True # fine comando
+      # RESPONSE TO FIRST CORNER OF CELL REQUEST (from step = ASK_FOR_COLUMN_SPACE_OR_CELL)
+      elif self.step == QadARRAYCommandClassStepEnum.ASK_FOR_1PT_CELL: # after waiting for a point restart the command
+         if msgMapTool == True: # the point comes from a graphic selection
+            # the following condition occurs if during selection of a point
+            # another plugin was activated that deactivated Qad
+            # then reactivated the command which returns here without the maptool
+            # having selected a point            
+            if self.getPointMapTool().point is None: # the maptool was activated without a point
+               if self.getPointMapTool().rightButton == True: # if right mouse button
+                  return True # end command
                else:
-                  self.setMapTool(self.getPointMapTool()) # riattivo il maptool
+                  self.setMapTool(self.getPointMapTool()) # reactivate the maptool
                   return False
 
             value = self.getPointMapTool().point
-         else: # il punto arriva come parametro della funzione
+         else: # the point comes as a parameter of the function
             value = msg
 
-         if type(value) == QgsPointXY: # se é stato inserito il primo punto per misurare la distanza tra righe
+         if type(value) == QgsPointXY: # if first point was entered to measure the distance between rows
             self.firstPt.set(value.x(), value.y())
             self.waitForRectangleSecondCellCorner()
          return False
 
 
       # =========================================================================
-      # RISPOSTA ALLA RICHIESTA DEL SECONDO ANGOLO DELLA CELLA (da step = ASK_FOR_1PT_CELL)
-      elif self.step == QadARRAYCommandClassStepEnum.ASK_FOR_2PT_CELL: # dopo aver atteso un punto si riavvia il comando
-         if msgMapTool == True: # il punto arriva da una selezione grafica
-            # la condizione seguente si verifica se durante la selezione di un punto
-            # é stato attivato un altro plugin che ha disattivato Qad
-            # quindi stato riattivato il comando che torna qui senza che il maptool
-            # abbia selezionato un punto            
-            if self.getPointMapTool().point is None: # il maptool é stato attivato senza un punto
-               if self.getPointMapTool().rightButton == True: # se usato il tasto destro del mouse
-                  return True # fine comando
+      # RESPONSE TO SECOND CORNER OF CELL REQUEST (from step = ASK_FOR_1PT_CELL)
+      elif self.step == QadARRAYCommandClassStepEnum.ASK_FOR_2PT_CELL: # after waiting for a point restart the command
+         if msgMapTool == True: # the point comes from a graphic selection
+            # the following condition occurs if during selection of a point
+            # another plugin was activated that deactivated Qad
+            # then reactivated the command which returns here without the maptool
+            # having selected a point            
+            if self.getPointMapTool().point is None: # the maptool was activated without a point
+               if self.getPointMapTool().rightButton == True: # if right mouse button
+                  return True # end command
                else:
-                  self.setMapTool(self.getPointMapTool()) # riattivo il maptool
+                  self.setMapTool(self.getPointMapTool()) # reactivate the maptool
                   return False
 
             value = self.getPointMapTool().point
-         else: # il punto arriva come parametro della funzione
+         else: # the point comes as a parameter of the function
             value = msg
 
-         if type(value) == QgsPointXY: # se é stato inserito il primo punto per misurare la distanza tra righe
+         if type(value) == QgsPointXY: # if first point was entered to measure the distance between rows
             if (value.y() - self.firstPt.y()) == 0 or (value.x() - self.firstPt.x()) == 0:
                self.showErr(QadMsg.translate("Command_ARRAY", "\nCell size must be greater than 0."))
             else:
@@ -1455,20 +1454,20 @@ class QadARRAYCommandClass(QadCommandClass):
 
 
       # =========================================================================
-      # RISPOSTA ALLA RICHIESTA DEL NUMERO DELLE COLONNE DELLA SERIE RETTANGOLO OPZIONE COLUMN (da step = ASK_FOR_MAIN_OPTIONS)
+      # RESPONSE TO COLUMN COUNT REQUEST FOR RECTANGLE ARRAY COLUMN OPTION (from step = ASK_FOR_MAIN_OPTIONS)
       # =========================================================================
-      elif self.step == QadARRAYCommandClassStepEnum.ASK_FOR_COLUMN_N: # dopo aver atteso un numero intero si riavvia il comando
-         if msgMapTool == True: # il punto arriva da una selezione grafica
-            if self.getPointMapTool().rightButton == True: # se usato il tasto destro del mouse
+      elif self.step == QadARRAYCommandClassStepEnum.ASK_FOR_COLUMN_N: # after waiting for an integer restart the command
+         if msgMapTool == True: # the point comes from a graphic selection
+            if self.getPointMapTool().rightButton == True: # if right mouse button
                value = self.defaultValue 
             else:
-               self.setMapTool(self.getPointMapTool()) # riattivo il maptool
+               self.setMapTool(self.getPointMapTool()) # reactivate the maptool
                return False
          else:
-            # il numero di righe arriva come parametro della funzione
+            # row count comes as a parameter of the function
             value = msg
 
-         # il numero delle colonnne arriva come parametro della funzione
+         # column count comes as a parameter of the function
          maxArray = QadVariables.get(QadMsg.translate("Environment variables", "MAXARRAY"))
          if value * self.rectangleRows > maxArray:
             errMsg = QadMsg.translate("Command_ARRAY", "\nThe array size can't be greater than {0} elements. See MAXARRAY system variable.")
@@ -1477,43 +1476,42 @@ class QadARRAYCommandClass(QadCommandClass):
             self.rectangleCols = value
             self.plugIn.setLastRectangleCols_array(self.rectangleCols)
             self.updatePointMapToolParams()
-            self.waitForRectangleDistanceBetweenCols(True) # con opzione "TOTAL"
+            self.waitForRectangleDistanceBetweenCols(True) # with "TOTAL" option
          return False
-      
-      
-      # =========================================================================
-      # RISPOSTA ALLA RICHIESTA DELLA DISTANZA TRA COLONNE (da step = ASK_FOR_COLUMN_N)
-      elif self.step == QadARRAYCommandClassStepEnum.ASK_FOR_COLUMN_SPACE_OR_TOT: # dopo aver atteso un punto si riavvia il comando
-         if msgMapTool == True: # il punto arriva da una selezione grafica
-            # la condizione seguente si verifica se durante la selezione di un punto
-            # é stato attivato un altro plugin che ha disattivato Qad
-            # quindi stato riattivato il comando che torna qui senza che il maptool
-            # abbia selezionato un punto            
-            if self.getPointMapTool().point is None: # il maptool é stato attivato senza un punto
-               if self.getPointMapTool().rightButton == True: # se usato il tasto destro del mouse
+
+    # =========================================================================
+      # RESPONSE TO DISTANCE BETWEEN COLUMNS REQUEST (from step = ASK_FOR_COLUMN_N)
+      elif self.step == QadARRAYCommandClassStepEnum.ASK_FOR_COLUMN_SPACE_OR_TOT: # after waiting for a point restart the command
+         if msgMapTool == True: # the point comes from a graphic selection
+            # the following condition occurs if during selection of a point
+            # another plugin was activated that deactivated Qad
+            # then reactivated the command which returns here without the maptool
+            # having selected a point            
+            if self.getPointMapTool().point is None: # the maptool was activated without a point
+               if self.getPointMapTool().rightButton == True: # if right mouse button
                   value = self.defaultValue 
                else:
-                  self.setMapTool(self.getPointMapTool()) # riattivo il maptool
+                  self.setMapTool(self.getPointMapTool()) # reactivate the maptool
                   return False
             else:
                value = self.getPointMapTool().point
-         else: # il punto arriva come parametro della funzione
+         else: # the point comes as a parameter of the function
             value = msg
 
-         if type(value) == QgsPointXY: # se é stato inserito il primo punto per misurare la distanza tra righe
+         if type(value) == QgsPointXY: # if first point was entered to measure the distance between rows
             self.waitForRectangleColumnsSpacing2Pt(value)
-         elif type(value) == float: # se é stato inserita la distanza
+         elif type(value) == float: # if distance was entered
             self.distanceBetweenCols = value
             self.waitForMainOptions()
          elif type(value) == unicode:
             if value == QadMsg.translate("Command_ARRAY", "Total") or value == "Total":
                self.waitForRectangleTotalDistanceCols()
-         return False # fine comando
+         return False # end command
 
 
       # =========================================================================
-      # RISPOSTA ALLA RICHIESTA DEL SECONDO PT PER MISURARE LA DISTANZA TOTALE TRA COLONNE (da step = ASK_FOR_COLUMN_SPACE_OR_TOT)
-      elif self.step == QadARRAYCommandClassStepEnum.ASK_FOR_COLUMN_SPACE_TOT: # dopo aver atteso un punto si riavvia il comando
+      # RESPONSE TO SECOND POINT REQUEST FOR MEASURING TOTAL DISTANCE BETWEEN COLUMNS (from step = ASK_FOR_COLUMN_SPACE_OR_TOT)
+      elif self.step == QadARRAYCommandClassStepEnum.ASK_FOR_COLUMN_SPACE_TOT: # after waiting for a point restart the command
          if self.GetDistClass.run(msgMapTool, msg) == True:
             if self.GetDistClass.dist is not None:
                if self.rectangleCols > 1:
@@ -1522,25 +1520,25 @@ class QadARRAYCommandClass(QadCommandClass):
             del self.GetDistClass
             self.GetDistClass = None
             self.waitForMainOptions()
-         return False # fine comando
+         return False # end command
 
 
       # =========================================================================
-      # RISPOSTA ALLA RICHIESTA DEL NUMERO DELLE RIGHE OPZIONE ROW (da step = ASK_FOR_MAIN_OPTIONS)
+      # RESPONSE TO ROW COUNT REQUEST FOR ROW OPTION (from step = ASK_FOR_MAIN_OPTIONS)
       # =========================================================================
-      elif self.step == QadARRAYCommandClassStepEnum.ASK_FOR_ROW_N: # dopo aver atteso un numero intero si riavvia il comando
-         if msgMapTool == True: # il punto arriva da una selezione grafica
-            if self.getPointMapTool().rightButton == True: # se usato il tasto destro del mouse
+      elif self.step == QadARRAYCommandClassStepEnum.ASK_FOR_ROW_N: # after waiting for an integer restart the command
+         if msgMapTool == True: # the point comes from a graphic selection
+            if self.getPointMapTool().rightButton == True: # if right mouse button
                value = self.defaultValue 
             else:
-               self.setMapTool(self.getPointMapTool()) # riattivo il maptool
+               self.setMapTool(self.getPointMapTool()) # reactivate the maptool
                return False
          else:
-            # il numero di righe arriva come parametro della funzione
+            # row count comes as a parameter of the function
             value = msg
 
          maxArray = QadVariables.get(QadMsg.translate("Environment variables", "MAXARRAY"))
-         # il numero di righe arriva come parametro della funzione
+         # row count comes as a parameter of the function
          if self.arrayType == QadARRAYCommandClassSeriesTypeEnum.RECTANGLE:
             if value * self.rectangleCols > maxArray:
                errMsg = QadMsg.translate("Command_ARRAY", "\nThe array size can't be greater than {0} elements. See MAXARRAY system variable.")
@@ -1567,43 +1565,43 @@ class QadARRAYCommandClass(QadCommandClass):
                self.plugIn.setLastPolarRows_array(self.polarRows)
          
          self.updatePointMapToolParams()
-         self.waitForDistanceBetweenRows(True, QadARRAYCommandClassStepEnum.ASK_FOR_ROW_SPACE_OR_TOT) # con opzione "TOTAL"
+         self.waitForDistanceBetweenRows(True, QadARRAYCommandClassStepEnum.ASK_FOR_ROW_SPACE_OR_TOT) # with "TOTAL" option
          return False
       
       
       # =========================================================================
-      # RISPOSTA ALLA RICHIESTA DELLA DISTANZA TRA RIGHE (da step = ASK_FOR_ROW_N)
-      elif self.step == QadARRAYCommandClassStepEnum.ASK_FOR_ROW_SPACE_OR_TOT: # dopo aver atteso un punto si riavvia il comando
-         if msgMapTool == True: # il punto arriva da una selezione grafica
-            # la condizione seguente si verifica se durante la selezione di un punto
-            # é stato attivato un altro plugin che ha disattivato Qad
-            # quindi stato riattivato il comando che torna qui senza che il maptool
-            # abbia selezionato un punto            
-            if self.getPointMapTool().point is None: # il maptool é stato attivato senza un punto
-               if self.getPointMapTool().rightButton == True: # se usato il tasto destro del mouse
+      # RESPONSE TO DISTANCE BETWEEN ROWS REQUEST (from step = ASK_FOR_ROW_N)
+      elif self.step == QadARRAYCommandClassStepEnum.ASK_FOR_ROW_SPACE_OR_TOT: # after waiting for a point restart the command
+         if msgMapTool == True: # the point comes from a graphic selection
+            # the following condition occurs if during selection of a point
+            # another plugin was activated that deactivated Qad
+            # then reactivated the command which returns here without the maptool
+            # having selected a point            
+            if self.getPointMapTool().point is None: # the maptool was activated without a point
+               if self.getPointMapTool().rightButton == True: # if right mouse button
                   value = self.defaultValue 
                else:
-                  self.setMapTool(self.getPointMapTool()) # riattivo il maptool
+                  self.setMapTool(self.getPointMapTool()) # reactivate the maptool
                   return False
             else:
                value = self.getPointMapTool().point
-         else: # il punto arriva come parametro della funzione
+         else: # the point comes as a parameter of the function
             value = msg
 
-         if type(value) == QgsPointXY: # se é stato inserito il primo punto per misurare la distanza tra righe
+         if type(value) == QgsPointXY: # if first point was entered to measure the distance between rows
             self.waitForDistanceBetweenRows2Pt(value)
-         elif type(value) == float: # se é stato inserita la distanza
+         elif type(value) == float: # if distance was entered
             self.distanceBetweenRows = value
             self.waitForMainOptions()
          elif type(value) == unicode:
             if value == QadMsg.translate("Command_ARRAY", "Total") or value == "Total":
                self.waitForTotalDistanceRows()
-         return False # fine comando
+         return False # end command
 
 
       # =========================================================================
-      # RISPOSTA ALLA RICHIESTA DEL SECONDO PT PER MISURARE LA DISTANZA TOTALE TRA RIGHE (da step = ASK_FOR_ROW_SPACE)
-      elif self.step == QadARRAYCommandClassStepEnum.ASK_FOR_ROW_SPACE_TOT: # dopo aver atteso un punto si riavvia il comando
+      # RESPONSE TO SECOND POINT REQUEST FOR MEASURING TOTAL DISTANCE BETWEEN ROWS (from step = ASK_FOR_ROW_SPACE)
+      elif self.step == QadARRAYCommandClassStepEnum.ASK_FOR_ROW_SPACE_TOT: # after waiting for a point restart the command
          if self.GetDistClass.run(msgMapTool, msg) == True:
             if self.GetDistClass.dist is not None:
                if self.arrayType == QadARRAYCommandClassSeriesTypeEnum.RECTANGLE:
@@ -1623,23 +1621,23 @@ class QadARRAYCommandClass(QadCommandClass):
 
 
       # =========================================================================
-      # RISPOSTA ALLA RICHIESTA DEL NUMERO DI ELEMENTI DELLA SERIE (da step = ASK_FOR_MAIN_OPTIONS)
+      # RESPONSE TO ELEMENT COUNT REQUEST FOR ARRAY (from step = ASK_FOR_MAIN_OPTIONS)
       elif self.step == QadARRAYCommandClassStepEnum.ASK_FOR_ITEM_N:
-         if msgMapTool == True: # il punto arriva da una selezione grafica
-            if self.getPointMapTool().rightButton == True: # se usato il tasto destro del mouse
+         if msgMapTool == True: # the point comes from a graphic selection
+            if self.getPointMapTool().rightButton == True: # if right mouse button
                value = self.defaultValue 
             else:
-               self.setMapTool(self.getPointMapTool()) # riattivo il maptool
+               self.setMapTool(self.getPointMapTool()) # reactivate the maptool
                return False
          else:
-            # il numero di elementi arriva come parametro della funzione
+            # element count comes as a parameter of the function
             value = msg
 
          maxArray = QadVariables.get(QadMsg.translate("Environment variables", "MAXARRAY"))
 
          if self.arrayType == QadARRAYCommandClassSeriesTypeEnum.PATH:
             if self.pathMethod == QadARRAYCommandClassPathMethodTypeEnum.DIVIDE:
-               if type(value) == int or type(value) == long: # se é stato inserito il numero di elementi
+               if type(value) == int or type(value) == long: # if element count was entered
                   if value * self.pathRows > maxArray:
                      errMsg = QadMsg.translate("Command_ARRAY", "\nThe array size can't be greater than {0} elements. See MAXARRAY system variable.")
                      self.showErr(errMsg.format(str(maxArray)))
@@ -1648,7 +1646,7 @@ class QadARRAYCommandClass(QadCommandClass):
                      self.setDistancesByPathItemNumberOnDivide()
                      self.waitForMainOptions()
             elif self.pathMethod == QadARRAYCommandClassPathMethodTypeEnum.MEASURE:
-               if type(value) == int or type(value) == long: # se é stato inserito il numero di elementi
+               if type(value) == int or type(value) == long: # if element count was entered
                   if value * self.pathRows > maxArray:
                      errMsg = QadMsg.translate("Command_ARRAY", "\nThe array size can't be greater than {0} elements. See MAXARRAY system variable.")
                      self.showErr(errMsg.format(str(maxArray)))
@@ -1675,16 +1673,16 @@ class QadARRAYCommandClass(QadCommandClass):
                self.plugIn.setLastPolarAngleBetween_array(self.polarAngleBetween)
                self.waitForMainOptions()
                
-         return False # fine comando
+         return False # end command
 
 
    # ============================================================================
-   # SERIE TRAIETTORIA  - INIZIO
+   # PATH ARRAY - BEGIN
    # ============================================================================
 
 
       # =========================================================================
-      # RISPOSTA ALLA SELEZIONE DI UN'ENTITA' DA USARE COME PERCORSO DELLA SERIE (da step = ASK_FOR_ARRAYTYPE)
+      # RESPONSE TO ENTITY SELECTION TO USE AS PATH FOR ARRAY (from step = ASK_FOR_ARRAYTYPE)
       elif self.step == QadARRAYCommandClassStepEnum.ASK_FOR_PATH_OBJ:
          if self.entSelClass.run(msgMapTool, msg) == True:
             if self.entSelClass.entity.isInitialized():
@@ -1692,7 +1690,7 @@ class QadARRAYCommandClass(QadCommandClass):
                   self.setItemNumberByDistanceBetweenColsOnMeasure()
                   self.waitForMainOptions()
             else:               
-               if self.entSelClass.canceledByUsr == True: # fine comando
+               if self.entSelClass.canceledByUsr == True: # end command
                   return True
                self.showMsg(QadMsg.translate("QAD", "No geometries in this position."))
                self.waitForPathObject(msgMapTool, msg)
@@ -1701,16 +1699,16 @@ class QadARRAYCommandClass(QadCommandClass):
 
 
       # =========================================================================
-      # RISPOSTA ALLA RICHIESTA DEL METODO (da step = ASK_FOR_MAIN_OPTIONS)
-      elif self.step == QadARRAYCommandClassStepEnum.ASK_FOR_PATH_METHOD: # dopo aver atteso una parola chiave si riavvia il comando
-         if msgMapTool == True: # il punto arriva da una selezione grafica
-            if self.getPointMapTool().rightButton == True: # se usato il tasto destro del mouse
+      # RESPONSE TO METHOD REQUEST (from step = ASK_FOR_MAIN_OPTIONS)
+      elif self.step == QadARRAYCommandClassStepEnum.ASK_FOR_PATH_METHOD: # after waiting for a keyword restart the command
+         if msgMapTool == True: # the point comes from a graphic selection
+            if self.getPointMapTool().rightButton == True: # if right mouse button
                value = self.defaultValue 
             else:
-               self.setMapTool(self.getPointMapTool()) # riattivo il maptool
+               self.setMapTool(self.getPointMapTool()) # reactivate the maptool
                return False
          else:
-            # la parola chiave arriva come parametro della funzione
+            # the keyword comes as a parameter of the function
             value = msg
 
          if type(value) == unicode:
@@ -1726,7 +1724,7 @@ class QadARRAYCommandClass(QadCommandClass):
 
 
       # =========================================================================
-      # RISPOSTA ALLA RICHIESTA DELLA DIREZIONE DELLA TANGENTE (da step = ASK_FOR_MAIN_OPTIONS)
+      # RESPONSE TO TANGENT DIRECTION REQUEST (from step = ASK_FOR_MAIN_OPTIONS)
       # =========================================================================
       elif self.step == QadARRAYCommandClassStepEnum.ASK_FOR_TAN_DIRECTION:
          if self.GetAngleClass.run(msgMapTool, msg) == True:
@@ -1739,7 +1737,7 @@ class QadARRAYCommandClass(QadCommandClass):
 
 
       # =========================================================================
-      # RISPOSTA ALLA RICHIESTA DEL SECONDO PT PER MISURARE LA DISTANZA TRA ELEMENTI (da step = ASK_FOR_MAIN_OPTIONS)
+      # RESPONSE TO SECOND POINT REQUEST FOR MEASURING DISTANCE BETWEEN ELEMENTS (from step = ASK_FOR_MAIN_OPTIONS)
       elif self.step == QadARRAYCommandClassStepEnum.ASK_FOR_ITEM_SPACE: 
          if self.GetDistClass.run(msgMapTool, msg) == True:
             if self.GetDistClass.dist is not None:
@@ -1754,20 +1752,20 @@ class QadARRAYCommandClass(QadCommandClass):
             self.GetDistClass = None
             self.updatePointMapToolParams()
             self.waitForItemsNumber()
-         return False # fine comando
+         return False # end command
 
 
       # =========================================================================
-      # RISPOSTA ALLA RICHIESTA DELL'ALLINEAMENTO DEGLI ELEMENTI (da step = ASK_FOR_MAIN_OPTIONS)
-      elif self.step == QadARRAYCommandClassStepEnum.ASK_FOR_ITEM_ROTATION: # dopo aver atteso una parola chiave si riavvia il comando
-         if msgMapTool == True: # il punto arriva da una selezione grafica
-            if self.getPointMapTool().rightButton == True: # se usato il tasto destro del mouse
+      # RESPONSE TO ELEMENT ALIGNMENT REQUEST (from step = ASK_FOR_MAIN_OPTIONS)
+      elif self.step == QadARRAYCommandClassStepEnum.ASK_FOR_ITEM_ROTATION: # after waiting for a keyword restart the command
+         if msgMapTool == True: # the point comes from a graphic selection
+            if self.getPointMapTool().rightButton == True: # if right mouse button
                value = self.defaultValue 
             else:
-               self.setMapTool(self.getPointMapTool()) # riattivo il maptool
+               self.setMapTool(self.getPointMapTool()) # reactivate the maptool
                return False
          else:
-            # la parola chiave arriva come parametro della funzione
+            # the keyword comes as a parameter of the function
             value = msg
 
          if type(value) == unicode:
@@ -1782,57 +1780,57 @@ class QadARRAYCommandClass(QadCommandClass):
 
 
    # ============================================================================
-   # SERIE TRAIETTORIA  - FINE
-   # SERIE POLARE       - INIZIO
+   # PATH ARRAY - END
+   # POLAR ARRAY - BEGIN
    # ============================================================================
 
 
       # =========================================================================
-      # RISPOSTA ALLA RICHIESTA DEL CENTRO DELLA SERIE ((da step = ASK_FOR_ARRAYTYPE))
-      elif self.step == QadARRAYCommandClassStepEnum.ASK_FOR_CENTER_PT: # dopo aver atteso un punto si riavvia il comando
-         if msgMapTool == True: # il punto arriva da una selezione grafica
-            # la condizione seguente si verifica se durante la selezione di un punto
-            # é stato attivato un altro plugin che ha disattivato Qad
-            # quindi stato riattivato il comando che torna qui senza che il maptool
-            # abbia selezionato un punto            
-            if self.getPointMapTool().point is None: # il maptool é stato attivato senza un punto
-               if self.getPointMapTool().rightButton == True: # se usato il tasto destro del mouse
-                  return True # fine comando
+      # RESPONSE TO ARRAY CENTER REQUEST (from step = ASK_FOR_ARRAYTYPE)
+      elif self.step == QadARRAYCommandClassStepEnum.ASK_FOR_CENTER_PT: # after waiting for a point restart the command
+         if msgMapTool == True: # the point comes from a graphic selection
+            # the following condition occurs if during selection of a point
+            # another plugin was activated that deactivated Qad
+            # then reactivated the command which returns here without the maptool
+            # having selected a point            
+            if self.getPointMapTool().point is None: # the maptool was activated without a point
+               if self.getPointMapTool().rightButton == True: # if right mouse button
+                  return True # end command
                else:
-                  self.setMapTool(self.getPointMapTool()) # riattivo il maptool
+                  self.setMapTool(self.getPointMapTool()) # reactivate the maptool
                   return False
 
             value = self.getPointMapTool().point
-         else: # il punto arriva come parametro della funzione
+         else: # the point comes as a parameter of the function
             value = msg
 
-         if type(value) == QgsPointXY: # se é stato inserito il punto centrale della serie
+         if type(value) == QgsPointXY: # if central point of array was entered
             self.centerPt.set(value.x(), value.y())
             self.waitForMainOptions()
          elif type(value) == unicode:
             if value == QadMsg.translate("Command_ARRAY", "Base point") or value == "Base point":
                self.updatePointMapToolParams()
                self.waitForBasePt(QadARRAYCommandClassStepEnum.ASK_FOR_BASE_PT_BEFORE_MAIN_OPTIONS)
-         return False # fine comando
+         return False # end command
          
          
       # =========================================================================
-      # RISPOSTA ALLA RICHIESTA DEL PUNTO BASE (da step = ASK_FOR_CENTER_PT)
-      elif self.step == QadARRAYCommandClassStepEnum.ASK_FOR_BASE_PT_BEFORE_MAIN_OPTIONS: # dopo aver atteso un punto si riavvia il comando
-         if msgMapTool == True: # il punto arriva da una selezione grafica
-            # la condizione seguente si verifica se durante la selezione di un punto
-            # é stato attivato un altro plugin che ha disattivato Qad
-            # quindi stato riattivato il comando che torna qui senza che il maptool
-            # abbia selezionato un punto            
-            if self.getPointMapTool().point is None: # il maptool é stato attivato senza un punto
-               if self.getPointMapTool().rightButton == True: # se usato il tasto destro del mouse
-                  return True # fine comando
+      # RESPONSE TO BASE POINT REQUEST (from step = ASK_FOR_CENTER_PT)
+      elif self.step == QadARRAYCommandClassStepEnum.ASK_FOR_BASE_PT_BEFORE_MAIN_OPTIONS: # after waiting for a point restart the command
+         if msgMapTool == True: # the point comes from a graphic selection
+            # the following condition occurs if during selection of a point
+            # another plugin was activated that deactivated Qad
+            # then reactivated the command which returns here without the maptool
+            # having selected a point            
+            if self.getPointMapTool().point is None: # the maptool was activated without a point
+               if self.getPointMapTool().rightButton == True: # if right mouse button
+                  return True # end command
                else:
-                  self.setMapTool(self.getPointMapTool()) # riattivo il maptool
+                  self.setMapTool(self.getPointMapTool()) # reactivate the maptool
                   return False
 
             value = self.getPointMapTool().point
-         else: # il punto arriva come parametro della funzione
+         else: # the point comes as a parameter of the function
             value = msg
 
          self.basePt.set(value.x(), value.y())
@@ -1842,7 +1840,7 @@ class QadARRAYCommandClass(QadCommandClass):
 
 
       # =========================================================================
-      # RISPOSTA ALLA RICHIESTA DELL'ANGOLO TRA GLI ELEMENTI (da step = ASK_FOR_MAIN_OPTIONS)
+      # RESPONSE TO ANGLE BETWEEN ELEMENTS REQUEST (from step = ASK_FOR_MAIN_OPTIONS)
       # =========================================================================
       elif self.step == QadARRAYCommandClassStepEnum.ASK_FOR_ANGLE_BETWEEN_ITEMS:
          if self.GetAngleClass.run(msgMapTool, msg) == True:
@@ -1861,7 +1859,7 @@ class QadARRAYCommandClass(QadCommandClass):
 
 
       # =========================================================================
-      # RISPOSTA ALLA RICHIESTA DELL'ANGOLO TRA GLI ELEMENTI (da step = ASK_FOR_MAIN_OPTIONS)
+      # RESPONSE TO ANGLE BETWEEN ELEMENTS REQUEST (from step = ASK_FOR_MAIN_OPTIONS)
       # =========================================================================
       elif self.step == QadARRAYCommandClassStepEnum.ASK_FOR_FULL_ANGLE:
          if self.GetAngleClass.run(msgMapTool, msg) == True:
@@ -1874,11 +1872,11 @@ class QadARRAYCommandClass(QadCommandClass):
          
 
 ###############################################################################
-# Classe che gestisce il comando ARRAYRECT
+# Class that manages the ARRAYRECT command
 class QadARRAYRECTCommandClass(QadCommandClass):
 
    def instantiateNewCmd(self):
-      """ istanzia un nuovo comando dello stesso tipo """
+      """ instantiates a new command of the same type """
       return QadARRAYRECTCommandClass(self.plugIn)
    
    def getName(self):
@@ -1894,7 +1892,7 @@ class QadARRAYRECTCommandClass(QadCommandClass):
       return QIcon(":/plugins/qad/icons/arrayRect.svg")
 
    def getNote(self):
-      # impostare le note esplicative del comando
+      # set the explanatory notes of the command
       return QadMsg.translate("Command_ARRAY", "Distributes object copies into any combination of rows and columns.")
    
    def __init__(self, plugIn):
@@ -1911,14 +1909,14 @@ class QadARRAYRECTCommandClass(QadCommandClass):
 
 
    def getPointMapTool(self, drawMode = QadGetPointDrawModeEnum.NONE):
-      if self.step == QadARRAYCommandClassStepEnum.ASK_FOR_SELSET: # quando si é in fase di selezione entità
+      if self.step == QadARRAYCommandClassStepEnum.ASK_FOR_SELSET: # when in entity selection phase
          return self.SSGetClass.getPointMapTool()
       else:
          return self.arrayCmd.getPointMapTool()
 
 
    def getCurrentContextualMenu(self):
-      if self.step == QadARRAYCommandClassStepEnum.ASK_FOR_SELSET: # quando si é in fase di selezione entità
+      if self.step == QadARRAYCommandClassStepEnum.ASK_FOR_SELSET: # when in entity selection phase
          return None # return self.SSGetClass.getCurrentContextualMenu()
       else:
          return self.arrayCmd.getCurrentContextualMenu()
@@ -1930,14 +1928,14 @@ class QadARRAYRECTCommandClass(QadCommandClass):
    def run(self, msgMapTool = False, msg = None):
       if self.plugIn.canvas.mapSettings().destinationCrs().isGeographic():
          self.showMsg(QadMsg.translate("QAD", "\nThe coordinate reference system of the project must be a projected coordinate system.\n"))
-         return True # fine comando
+         return True # end command
             
       # =========================================================================
-      # RICHIESTA SELEZIONE OGGETTI
-      if self.step == QadARRAYCommandClassStepEnum.ASK_FOR_SELSET: # inizio del comando
+      # OBJECT SELECTION REQUEST
+      if self.step == QadARRAYCommandClassStepEnum.ASK_FOR_SELSET: # start of command
          if self.SSGetClass.run(msgMapTool, msg) == True:
             if self.SSGetClass.entitySet.count() == 0:
-               return True # fine comando
+               return True # end command
             self.arrayCmd.setEntitySet(self.SSGetClass.entitySet)
             
             del self.SSGetClass
@@ -1955,11 +1953,11 @@ class QadARRAYRECTCommandClass(QadCommandClass):
 
 
 ###############################################################################
-# Classe che gestisce il comando ARRAYPATH
+# Class that manages the ARRAYPATH command
 class QadARRAYPATHCommandClass(QadCommandClass):
 
    def instantiateNewCmd(self):
-      """ istanzia un nuovo comando dello stesso tipo """
+      """ instantiates a new command of the same type """
       return QadARRAYPATHCommandClass(self.plugIn)
    
    def getName(self):
@@ -1975,7 +1973,7 @@ class QadARRAYPATHCommandClass(QadCommandClass):
       return QIcon(":/plugins/qad/icons/arrayPath.svg")
 
    def getNote(self):
-      # impostare le note esplicative del comando
+      # set the explanatory notes of the command
       return QadMsg.translate("Command_ARRAY", "Evenly distributes object copies along a path or a portion of a path.")
    
    def __init__(self, plugIn):
@@ -1992,14 +1990,14 @@ class QadARRAYPATHCommandClass(QadCommandClass):
 
 
    def getPointMapTool(self, drawMode = QadGetPointDrawModeEnum.NONE):
-      if self.step == QadARRAYCommandClassStepEnum.ASK_FOR_SELSET: # quando si é in fase di selezione entità
+      if self.step == QadARRAYCommandClassStepEnum.ASK_FOR_SELSET: # when in entity selection phase
          return self.SSGetClass.getPointMapTool()
       else:
          return self.arrayCmd.getPointMapTool()
 
 
    def getCurrentContextualMenu(self):
-      if self.step == QadARRAYCommandClassStepEnum.ASK_FOR_SELSET: # quando si é in fase di selezione entità
+      if self.step == QadARRAYCommandClassStepEnum.ASK_FOR_SELSET: # when in entity selection phase
          return None # return self.SSGetClass.getCurrentContextualMenu()
       else:
          return self.arrayCmd.getCurrentContextualMenu()
@@ -2011,14 +2009,14 @@ class QadARRAYPATHCommandClass(QadCommandClass):
    def run(self, msgMapTool = False, msg = None):
       if self.plugIn.canvas.mapSettings().destinationCrs().isGeographic():
          self.showMsg(QadMsg.translate("QAD", "\nThe coordinate reference system of the project must be a projected coordinate system.\n"))
-         return True # fine comando
+         return True # end command
             
       # =========================================================================
-      # RICHIESTA SELEZIONE OGGETTI
-      if self.step == QadARRAYCommandClassStepEnum.ASK_FOR_SELSET: # inizio del comando
+      # OBJECT SELECTION REQUEST
+      if self.step == QadARRAYCommandClassStepEnum.ASK_FOR_SELSET: # start of command
          if self.SSGetClass.run(msgMapTool, msg) == True:
             if self.SSGetClass.entitySet.count() == 0:
-               return True # fine comando
+               return True # end command
             self.arrayCmd.setEntitySet(self.SSGetClass.entitySet)
             
             del self.SSGetClass
@@ -2036,11 +2034,11 @@ class QadARRAYPATHCommandClass(QadCommandClass):
 
 
 ###############################################################################
-# Classe che gestisce il comando ARRAYPOLAR
+# Class that manages the ARRAYPOLAR command
 class QadARRAYPOLARCommandClass(QadCommandClass):
 
    def instantiateNewCmd(self):
-      """ istanzia un nuovo comando dello stesso tipo """
+      """ instantiates a new command of the same type """
       return QadARRAYPOLARCommandClass(self.plugIn)
    
    def getName(self):
@@ -2056,7 +2054,7 @@ class QadARRAYPOLARCommandClass(QadCommandClass):
       return QIcon(":/plugins/qad/icons/arrayPolar.svg")
 
    def getNote(self):
-      # impostare le note esplicative del comando
+      # set the explanatory notes of the command
       return QadMsg.translate("Command_ARRAY", "Evenly distributes object copies in a circular pattern around a center point.")
    
    def __init__(self, plugIn):
@@ -2072,14 +2070,14 @@ class QadARRAYPOLARCommandClass(QadCommandClass):
       del self.arrayCmd
 
    def getPointMapTool(self, drawMode = QadGetPointDrawModeEnum.NONE):
-      if self.step == QadARRAYCommandClassStepEnum.ASK_FOR_SELSET: # quando si é in fase di selezione entità
+      if self.step == QadARRAYCommandClassStepEnum.ASK_FOR_SELSET: # when in entity selection phase
          return self.SSGetClass.getPointMapTool()
       else:
          return self.arrayCmd.getPointMapTool()
 
 
    def getCurrentContextualMenu(self):
-      if self.step == QadARRAYCommandClassStepEnum.ASK_FOR_SELSET: # quando si é in fase di selezione entità
+      if self.step == QadARRAYCommandClassStepEnum.ASK_FOR_SELSET: # when in entity selection phase
          return None # return self.SSGetClass.getCurrentContextualMenu()
       else:
          return self.arrayCmd.getCurrentContextualMenu()
@@ -2091,14 +2089,14 @@ class QadARRAYPOLARCommandClass(QadCommandClass):
    def run(self, msgMapTool = False, msg = None):
       if self.plugIn.canvas.mapSettings().destinationCrs().isGeographic():
          self.showMsg(QadMsg.translate("QAD", "\nThe coordinate reference system of the project must be a projected coordinate system.\n"))
-         return True # fine comando
+         return True # end command
             
       # =========================================================================
-      # RICHIESTA SELEZIONE OGGETTI
-      if self.step == QadARRAYCommandClassStepEnum.ASK_FOR_SELSET: # inizio del comando
+      # OBJECT SELECTION REQUEST
+      if self.step == QadARRAYCommandClassStepEnum.ASK_FOR_SELSET: # start of command
          if self.SSGetClass.run(msgMapTool, msg) == True:
             if self.SSGetClass.entitySet.count() == 0:
-               return True # fine comando
+               return True # end command
             self.arrayCmd.setEntitySet(self.SSGetClass.entitySet)
             
             del self.SSGetClass
@@ -2113,3 +2111,5 @@ class QadARRAYPOLARCommandClass(QadCommandClass):
 
       else:
          return self.arrayCmd.run(msgMapTool, msg)
+
+    
