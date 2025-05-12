@@ -3,13 +3,13 @@
 /***************************************************************************
  QAD Quantum Aided Design plugin
 
- classe per gestire il map tool in ambito del comando copy
+ Class for managing the map tool within the copy command
  
                               -------------------
-        begin                : 2013-10-02
+        begin                : 2025-05-11
         copyright            : iiiii
-        email                : hhhhh
-        developers           : bbbbb aaaaa ggggg
+        email                : brad@blackruby.dev
+        developers           : Brad, ClaudeAI
  ***************************************************************************/
 
 /***************************************************************************
@@ -35,9 +35,9 @@ from ..qad_multi_geom import fromQadGeomToQgsGeom
 # Qad_copy_maptool_ModeEnum class.
 # ===============================================================================
 class Qad_copy_maptool_ModeEnum():
-   # noto niente si richiede il punto base
+   # nothing known, request base point
    NONE_KNOWN_ASK_FOR_BASE_PT = 1     
-   # noto il punto base si richiede il secondo punto per la copia
+   # base point known, request second point for copy
    BASE_PT_KNOWN_ASK_FOR_COPY_PT = 2     
 
 
@@ -73,15 +73,15 @@ class Qad_copy_maptool(QadGetPoint):
    # move
    # ============================================================================
    def move(self, entity, offsetX, offsetY):
-      # verifico se l'entità appartiene ad uno stile di quotatura
+      # check if the entity belongs to a dimension style
       if entity.whatIs() == "ENTITY":
-         # sposto la geometria dell'entità
-         qadGeom = entity.getQadGeom().copy() # la copio
+         # move the entity geometry
+         qadGeom = entity.getQadGeom().copy() # copy it
          qadGeom.move(offsetX, offsetY)
          self.__highlight.addGeometry(fromQadGeomToQgsGeom(qadGeom, entity.layer), entity.layer)      
       elif entity.whatIs() == "DIMENTITY":
-         newDimEntity = QadDimEntity(entity) # la copio
-         # sposto la quota
+         newDimEntity = QadDimEntity(entity) # copy it
+         # move the dimension
          newDimEntity.move(offsetX, offsetY)
          self.__highlight.addGeometry(newDimEntity.textualFeature.geometry(), newDimEntity.getTextualLayer())
          self.__highlight.addGeometries(newDimEntity.getLinearGeometryCollection(), newDimEntity.getLinearLayer())
@@ -94,18 +94,18 @@ class Qad_copy_maptool(QadGetPoint):
       offsetX = newPt.x() - self.basePt.x()
       offsetY = newPt.y() - self.basePt.y()
       
-      dimElaboratedList = [] # lista delle quotature già elaborate
+      dimElaboratedList = [] # list of dimensions already processed
       entityIterator = QadCacheEntitySetIterator(self.cacheEntitySet)
       for entity in entityIterator:
-         qadGeom = entity.getQadGeom() # così inizializzo le info qad
-         # verifico se l'entità appartiene ad uno stile di quotatura
+         qadGeom = entity.getQadGeom() # initialize qad info
+         # check if the entity belongs to a dimension style
          dimEntity = QadDimStyles.getDimEntity(entity)
          if dimEntity is not None:
-            if appendDimEntityIfNotExisting(dimElaboratedList, dimEntity) == False: # quota già elaborata
+            if appendDimEntityIfNotExisting(dimElaboratedList, dimEntity) == False: # dimension already processed
                continue
             entity = dimEntity
          
-         if self.seriesLen > 0: # devo fare una serie
+         if self.seriesLen > 0: # need to create a series
             if self.adjust == True:
                offsetXToApply = offsetX / (self.seriesLen - 1)
                offsetYToApply = offsetY / (self.seriesLen - 1)
@@ -128,7 +128,7 @@ class Qad_copy_maptool(QadGetPoint):
    def canvasMoveEvent(self, event):
       QadGetPoint.canvasMoveEvent(self, event)
       
-      # noto il punto base si richiede il secondo punto
+      # base point known, request second point
       if self.mode == Qad_copy_maptool_ModeEnum.BASE_PT_KNOWN_ASK_FOR_COPY_PT:
          self.setCopiedGeometries(self.tmpPoint)                           
          
@@ -138,7 +138,7 @@ class Qad_copy_maptool(QadGetPoint):
       self.__highlight.show()          
 
    def deactivate(self):
-      try: # necessario perché se si chiude QGIS parte questo evento nonostante non ci sia più l'oggetto maptool !
+      try: # necessary because this event is triggered when QGIS is closed even if maptool object no longer exists!
          QadGetPoint.deactivate(self)
          self.__highlight.hide()
       except:
@@ -146,10 +146,10 @@ class Qad_copy_maptool(QadGetPoint):
 
    def setMode(self, mode):
       self.mode = mode
-      # noto niente si richiede il punto base
+      # nothing known, request base point
       if self.mode == Qad_copy_maptool_ModeEnum.NONE_KNOWN_ASK_FOR_BASE_PT:
          self.setDrawMode(QadGetPointDrawModeEnum.NONE)
-      # noto il punto base si richiede il secondo punto per l'angolo di rotazione
+      # base point known, request second point for copy
       elif self.mode == Qad_copy_maptool_ModeEnum.BASE_PT_KNOWN_ASK_FOR_COPY_PT:
          self.setDrawMode(QadGetPointDrawModeEnum.ELASTIC_LINE)
          self.setStartPoint(self.basePt)
