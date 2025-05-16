@@ -6,7 +6,7 @@
  BREAK command to cut an object
  
                               -------------------
-        begin                : 2025-05-10
+        last update          : 2025-05-10
         copyright            : iiiii
         email                : brad@blackruby.dev
         developers           : Brad, ClaudeAI
