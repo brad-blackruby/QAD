@@ -6,7 +6,7 @@
  CIRCLE command for drawing a circle
  
                               -------------------
-        begin                : 2025-05-11
+        last update          : 2025-05-11
         copyright            : iiiii
         email                : brad@blackruby.dev
         developers           : Brad, ClaudeAI
