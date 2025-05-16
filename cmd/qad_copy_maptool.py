@@ -6,7 +6,7 @@
  Class for managing the map tool within the copy command
  
                               -------------------
-        begin                : 2025-05-11
+        last update          : 2025-05-11
         copyright            : iiiii
         email                : brad@blackruby.dev
         developers           : Brad, ClaudeAI
