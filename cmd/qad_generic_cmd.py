@@ -6,7 +6,7 @@
  Base class for a command
  
                               -------------------
-        begin                : 2013-05-22
+        last update          : 2025-05-15
         copyright            : iiiii
         email                : brad@blackruby.dev
         developers           : Brad, ClaudeAI
