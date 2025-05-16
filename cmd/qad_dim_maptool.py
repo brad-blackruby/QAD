@@ -6,7 +6,7 @@
  Class to manage the map tool in dimension command context
  
                               -------------------
-        begin                : 2025-05-11
+        last update          : 2025-05-11
         copyright            : iiiii
         email                : brad@blackruby.dev
         developers           : Brad, ClaudeAI
