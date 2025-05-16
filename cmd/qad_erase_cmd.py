@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 """
 /***************************************************************************
- QAD Quantum Aided Design plugin ok
+ QAD Quantum Aided Design plugin
 
- comando ERASE per cancellare oggetti
+ ERASE command for deleting objects
  
                               -------------------
-        begin                : 2013-08-01
-        copyright            : iiiii
-        email                : hhhhh
-        developers           : bbbbb aaaaa ggggg
+        last update          : 2025-05-15
+        copyright            : iiiiii
+        email                : brad@blackruby.dev
+        developers           : Brad, ClaudeAI
  ***************************************************************************/
 
 /***************************************************************************
@@ -34,11 +34,11 @@ from .qad_ssget_cmd import QadSSGetClass
 from .. import qad_layer
 
 
-# Classe che gestisce il comando ERASE
+# Class that manages the ERASE command
 class QadERASECommandClass(QadCommandClass):
 
    def instantiateNewCmd(self):
-      """ istanzia un nuovo comando dello stesso tipo """
+      """ instantiates a new command of the same type """
       return QadERASECommandClass(self.plugIn)
    
    def getName(self):
@@ -54,7 +54,7 @@ class QadERASECommandClass(QadCommandClass):
       return QIcon(":/plugins/qad/icons/erase.svg")
 
    def getNote(self):
-      # impostare le note esplicative del comando
+      # set the explanatory notes for the command
       return QadMsg.translate("Command_ERASE", "Removes objects of the map.")
    
    def __init__(self, plugIn):
@@ -67,7 +67,7 @@ class QadERASECommandClass(QadCommandClass):
       del self.SSGetClass
       
    def getPointMapTool(self, drawMode = QadGetPointDrawModeEnum.NONE):
-      if self.step == 0: # quando si é in fase di selezione entità
+      if self.step == 0: # when in the entity selection phase
          return self.SSGetClass.getPointMapTool(drawMode)
       else:
          return QadCommandClass.getPointMapTool(self, drawMode)
@@ -75,17 +75,17 @@ class QadERASECommandClass(QadCommandClass):
    def run(self, msgMapTool = False, msg = None):
             
       # =========================================================================
-      # RICHIESTA PRIMO PUNTO PER SELEZIONE OGGETTI
-      if self.step == 0: # inizio del comando
+      # REQUEST FIRST POINT FOR OBJECT SELECTION
+      if self.step == 0: # start of the command
          if self.SSGetClass.run(msgMapTool, msg) == True:
-            # selezione terminata
+            # selection completed
             self.step = 1
             return self.run(msgMapTool, msg)
          else:
             return False
       
       # =========================================================================
-      # CANCELLAZIONE OGGETTI
+      # DELETION OF OBJECTS
       elif self.step == 1:
          self.plugIn.beginEditCommand("Feature deleted", self.SSGetClass.entitySet.getLayerList())
               
@@ -98,5 +98,4 @@ class QadERASECommandClass(QadCommandClass):
             
          self.plugIn.endEditCommand()
             
-         return True # fine comando
-
+         return True # end of command
