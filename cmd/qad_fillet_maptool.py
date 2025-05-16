@@ -3,13 +3,13 @@
 /***************************************************************************
  QAD Quantum Aided Design plugin
 
- classe per gestire il map tool in ambito del comando fillet ok
+ Class to manage the map tool for the fillet command
  
                               -------------------
-        begin                : 2014-01-31
+        last updated         : 2025-05-15
         copyright            : iiiii
-        email                : hhhhh
-        developers           : bbbbb aaaaa ggggg
+        email                : brad@blackruby.dev
+        developers           : Brad, ClaudeAI
  ***************************************************************************/
 
 /***************************************************************************
@@ -40,13 +40,13 @@ from ..qad_geom_relations import getQadGeomClosestPart
 # Qad_fillet_maptool_ModeEnum class.
 # ===============================================================================
 class Qad_fillet_maptool_ModeEnum():
-   # si richiede la selezione del primo oggetto
+   # requesting selection of the first object
    ASK_FOR_FIRST_LINESTRING = 1     
-   # si richiede la selezione del secondo oggetto
+   # requesting selection of the second object
    ASK_FOR_SECOND_LINESTRING = 2    
-   # non si richiede niente
+   # nothing is requested
    NONE = 3
-   # si richiede la selezione della polilinea
+   # requesting selection of the polyline
    ASK_FOR_POLYLINE = 4     
 
 
@@ -58,7 +58,7 @@ class Qad_fillet_maptool(QadGetPoint):
    def __init__(self, plugIn):
       QadGetPoint.__init__(self, plugIn)
 
-      self.filletMode = 1 # modalità di raccordo; 1=Taglia-estendi, 2=Non taglia-estendi
+      self.filletMode = 1 # fillet mode; 1=Trim-extend, 2=No trim-extend
       self.radius = 0.0
       
       self.layer = None
@@ -86,7 +86,7 @@ class Qad_fillet_maptool(QadGetPoint):
 
    def setEntityInfo(self, entity, atGeom, atSubGeom, partAt, pointAt):
       """
-      Setta self.entity1, elf.atGeom1, self.atSubGeom1, self.partAt1, self.pointAt1
+      Sets self.entity1, self.atGeom1, self.atSubGeom1, self.partAt1, self.pointAt1
       """
       self.entity1 = entity
       self.atGeom1 = atGeom
@@ -101,20 +101,20 @@ class Qad_fillet_maptool(QadGetPoint):
       self.__rubberBand.reset()
       newQadGeom = None
        
-      # si richiede la selezione del secondo oggetto
+      # requesting selection of the second object
       if self.mode == Qad_fillet_maptool_ModeEnum.ASK_FOR_SECOND_LINESTRING:
          if self.tmpEntity.isInitialized():
             tmpQadGeom = self.tmpEntity.getQadGeom()
             """
-            la funzione ritorna una lista con 
-            (<minima distanza>
-             <punto più vicino>
-             <indice della geometria più vicina>
-             <indice della sotto-geometria più vicina>
-             <indice della parte della sotto-geometria più vicina>
-             <"a sinistra di" se il punto é alla sinista della parte con i seguenti valori:
-             -   < 0 = sinistra (per linea, arco o arco di ellisse) o interno (per cerchi, ellissi)
-             -   > 0 = destra (per linea, arco o arco di ellisse) o esterno (per cerchi, ellissi)
+            the function returns a list with:
+            (<minimum distance>
+             <closest point>
+             <index of the closest geometry>
+             <index of the closest sub-geometry>
+             <index of the part of the closest sub-geometry>
+             <"on left of" if the point is to the left of the part with the following values:
+             -   < 0 = left (for line, arc or ellipse arc) or inside (for circles, ellipses)
+             -   > 0 = right (for line, arc or ellipse arc) or outside (for circles, ellipses)
              )
             """
             res = getQadGeomClosestPart(tmpQadGeom, self.tmpPoint)
@@ -123,29 +123,29 @@ class Qad_fillet_maptool(QadGetPoint):
             tmpAtSubGeom = res[3]
             tmpPartAt = res[4]
 
-            # stessa entità e stessa parte
+            # same entity and same part
             if self.entity1.layer.id() == self.tmpEntity.layer.id() and \
                self.entity1.featureId == self.tmpEntity.featureId and \
                self.atGeom1 == tmpAtGeom and self.atSubGeom1 == tmpAtSubGeom:
-               # se anche stessa parte
+               # if also same part
                if self.partAt1 == tmpPartAt: return
                subQadGeom = getQadGeomAt(self.entity1.getQadGeom(),self.atGeom1, self.atSubGeom1)
                if subQadGeom.whatIs() != "POLYLINE": return
                
-               if self.tmpShiftKey == True: # tasto shift premuto durante il movimento del mouse
-                  # filletMode = 1 # modalità di raccordo; 1=Taglia-estendi
-                  # raggio = 0
+               if self.tmpShiftKey == True: # shift key pressed during mouse movement
+                  # filletMode = 1 # fillet mode; 1=Trim-extend
+                  # radius = 0
                   newQadGeom = filletQadPolyline(subQadGeom, self.partAt1, self.pointAt1, tmpPartAt, tmpPointAt, \
                                                  1, 0)
                else:               
                   newQadGeom = filletQadPolyline(subQadGeom, self.partAt1, self.pointAt1, tmpPartAt, tmpPointAt, \
                                                  self.filletMode, self.radius)
       
-            # geometrie diverse      
+            # different geometries      
             else:
-               if self.tmpShiftKey == True: # tasto shift premuto durante il movimento del mouse
-                  # filletMode = 1 # modalità di raccordo; 1=Taglia-estendi
-                  # raggio = 0
+               if self.tmpShiftKey == True: # shift key pressed during mouse movement
+                  # filletMode = 1 # fillet mode; 1=Trim-extend
+                  # radius = 0
                   res = fillet2QadGeometries(self.entity1.getQadGeom(), self.atGeom1, self.atSubGeom1, self.partAt1, self.pointAt1, \
                                              tmpQadGeom, tmpAtGeom, tmpAtSubGeom, tmpPartAt, tmpPointAt, \
                                              1, 0)
@@ -153,25 +153,25 @@ class Qad_fillet_maptool(QadGetPoint):
                   res = fillet2QadGeometries(self.entity1.getQadGeom(), self.atGeom1, self.atSubGeom1, self.partAt1, self.pointAt1, \
                                              tmpQadGeom, tmpAtGeom, tmpAtSubGeom, tmpPartAt, tmpPointAt, \
                                              self.filletMode, self.radius)
-               if res is None: # raccordo non possibile
+               if res is None: # fillet not possible
                   return
                
                newQadGeom = res[0]
                         
-      # si richiede la selezione della polilinea
+      # requesting selection of the polyline
       elif self.mode == Qad_fillet_maptool_ModeEnum.ASK_FOR_POLYLINE:
          if self.tmpEntity.isInitialized():
             tmpQadGeom = self.tmpEntity.getQadGeom()
             """
-            la funzione ritorna una lista con 
-            (<minima distanza>
-             <punto più vicino>
-             <indice della geometria più vicina>
-             <indice della sotto-geometria più vicina>
-             <indice della parte della sotto-geometria più vicina>
-             <"a sinistra di" se il punto é alla sinista della parte con i seguenti valori:
-             -   < 0 = sinistra (per linea, arco o arco di ellisse) o interno (per cerchi, ellissi)
-             -   > 0 = destra (per linea, arco o arco di ellisse) o esterno (per cerchi, ellissi)
+            the function returns a list with:
+            (<minimum distance>
+             <closest point>
+             <index of the closest geometry>
+             <index of the closest sub-geometry>
+             <index of the part of the closest sub-geometry>
+             <"on left of" if the point is to the left of the part with the following values:
+             -   < 0 = left (for line, arc or ellipse arc) or inside (for circles, ellipses)
+             -   > 0 = right (for line, arc or ellipse arc) or outside (for circles, ellipses)
              )
             """
             res = getQadGeomClosestPart(tmpQadGeom, self.tmpPoint)
@@ -190,7 +190,7 @@ class Qad_fillet_maptool(QadGetPoint):
       self.__rubberBand.show()          
 
    def deactivate(self):
-      try: # necessario perché se si chiude QGIS parte questo evento nonostante non ci sia più l'oggetto maptool !
+      try: # necessary because if QGIS is closed this event is triggered despite the maptool object no longer exists!
          QadGetPoint.deactivate(self)
          self.__rubberBand.hide()
       except:
@@ -199,8 +199,8 @@ class Qad_fillet_maptool(QadGetPoint):
    def setMode(self, mode):
       self.mode = mode
 
-      # si richiede la selezione del primo oggetto
-      # si richiede la selezione del secondo oggetto
+      # requesting selection of the first object
+      # requesting selection of the second object
       if self.mode == Qad_fillet_maptool_ModeEnum.ASK_FOR_FIRST_LINESTRING or \
          self.mode == Qad_fillet_maptool_ModeEnum.ASK_FOR_SECOND_LINESTRING:
          
@@ -209,26 +209,26 @@ class Qad_fillet_maptool(QadGetPoint):
          else:
             self.setSelectionMode(QadGetPointSelectionModeEnum.ENTITY_SELECTION_DYNAMIC)
 
-         # solo layer lineari editabili che non appartengano a quote
+         # only editable linear layers that don't belong to dimensions
          layerList = []
-         for layer in qad_utils.getVisibleVectorLayers(self.plugIn.canvas): # Tutti i layer vettoriali visibili
+         for layer in qad_utils.getVisibleVectorLayers(self.plugIn.canvas): # All visible vector layers
             if layer.geometryType() == QgsWkbTypes.LineGeometry and layer.isEditable():
                if len(QadDimStyles.getDimListByLayer(layer)) == 0:
                   layerList.append(layer)
          
          self.layersToCheck = layerList
          self.setSnapType(QadSnapTypeEnum.DISABLE)
-      # non si richiede niente
+      # nothing is requested
       elif self.mode == Qad_fillet_maptool_ModeEnum.NONE:
          self.setSelectionMode(QadGetPointSelectionModeEnum.POINT_SELECTION)   
          self.setDrawMode(QadGetPointDrawModeEnum.NONE)
-      # si richiede la selezione della polilinea
+      # requesting selection of the polyline
       elif self.mode == Qad_fillet_maptool_ModeEnum.ASK_FOR_POLYLINE:
          self.setSelectionMode(QadGetPointSelectionModeEnum.ENTITY_SELECTION_DYNAMIC)
 
-         # solo layer lineari o poligono editabili che non appartengano a quote
+         # only editable linear or polygon layers that don't belong to dimensions
          layerList = []
-         for layer in qad_utils.getVisibleVectorLayers(self.plugIn.canvas): # Tutti i layer vettoriali visibili
+         for layer in qad_utils.getVisibleVectorLayers(self.plugIn.canvas): # All visible vector layers
             if (layer.geometryType() == QgsWkbTypes.LineGeometry or layer.geometryType() == QgsWkbTypes.PolygonGeometry) and \
                layer.isEditable():
                if len(QadDimStyles.getDimListByLayer(layer)) == 0:
