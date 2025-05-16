@@ -6,7 +6,7 @@
  Class to manage the map tool for requesting a point in the context of the circle command
  
                               -------------------
-        begin                : 2025-05-11
+        last update          : 2025-05-11
         copyright            : iiiii
         email                : brad@blackruby.dev
         developers           : Brad, ClaudeAI
