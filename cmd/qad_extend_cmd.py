@@ -3,13 +3,13 @@
 /***************************************************************************
  QAD Quantum Aided Design plugin
 
- comando EXTEND per estendere o tagliare oggetti grafici ok
+ EXTEND command for extending or trimming graphic objects
  
                               -------------------
-        begin                : 2013-07-15
-        copyright            : iiiii
-        email                : hhhhh
-        developers           : bbbbb aaaaa ggggg
+        last update          : 2025-05-15
+        copyright            : iiiiii
+        email                : brad@blackruby.dev
+        developers           : Brad, ClaudeAI
  ***************************************************************************/
 
 /***************************************************************************
@@ -46,11 +46,11 @@ from ..qad_geom_relations import getQadGeomClosestPart, QadIntersections
 from ..qad_multi_geom import fromQadGeomToQgsGeom, setQadGeomAt
 
 
-# Classe che gestisce il comando EXTEND
+# Class for managing the EXTEND command
 class QadEXTENDCommandClass(QadCommandClass):
 
    def instantiateNewCmd(self):
-      """ istanzia un nuovo comando dello stesso tipo """
+      """ instantiates a new command of the same type """
       return QadEXTENDCommandClass(self.plugIn)
    
    def getName(self):
@@ -66,7 +66,7 @@ class QadEXTENDCommandClass(QadCommandClass):
       return QIcon(":/plugins/qad/icons/extend.svg")
 
    def getNote(self):
-      # impostare le note esplicative del comando
+      # set the explanatory notes for the command
       return QadMsg.translate("Command_EXTEND", "Extends (or trims) objects to meet the edges of other objects.")
    
    def __init__(self, plugIn):
@@ -74,10 +74,10 @@ class QadEXTENDCommandClass(QadCommandClass):
       self.SSGetClass = QadSSGetClass(plugIn)
       self.PLINECommand = None      
       self.RECTANGLECommand = None
-      self.entitySet = QadEntitySet() # entità da estendere o tagliare
-      self.limitEntitySet = QadEntitySet() # entità che fanno da limiti
+      self.entitySet = QadEntitySet() # entities to extend or trim
+      self.limitEntitySet = QadEntitySet() # entities that serve as limits
       self.edgeMode = QadVariables.get(QadMsg.translate("Environment variables", "EDGEMODE"))
-      self.defaultValue = None # usato per gestire il tasto dx del mouse
+      self.defaultValue = None # used to manage the right mouse button
       self.nOperationsToUndo = 0
 
    def __del__(self):
@@ -85,18 +85,18 @@ class QadEXTENDCommandClass(QadCommandClass):
 
 
    def getPointMapTool(self, drawMode = QadGetPointDrawModeEnum.NONE):
-      if self.step == 3: # quando si é in fase di disegno linea
+      if self.step == 3: # when in the line drawing phase
          return self.PLINECommand.getPointMapTool(drawMode)
-      elif self.step == 4: # quando si é in fase di disegno rettangolo 
+      elif self.step == 4: # when in the rectangle drawing phase
          return self.RECTANGLECommand.getPointMapTool(drawMode)      
       else:
          return QadCommandClass.getPointMapTool(self, drawMode)
 
 
    def getCurrentContextualMenu(self):
-      if self.step == 3: # quando si é in fase di disegno linea
+      if self.step == 3: # when in the line drawing phase
          return self.PLINECommand.getCurrentContextualMenu()
-      elif self.step == 4: # quando si é in fase di disegno rettangolo 
+      elif self.step == 4: # when in the rectangle drawing phase
          return self.RECTANGLECommand.getCurrentContextualMenu()
       else:
          return self.contextualMenu
@@ -106,7 +106,7 @@ class QadEXTENDCommandClass(QadCommandClass):
    # extendFeatures
    # ============================================================================
    def extendFeatures(self, geom, toExtend):
-      # geom è in map coordinates
+      # geom is in map coordinates
       LineTempLayer = None
       self.plugIn.beginEditCommand("Feature extended" if toExtend else "Feature trimmed", \
                                    self.entitySet.getLayerList())
@@ -116,22 +116,22 @@ class QadEXTENDCommandClass(QadCommandClass):
 
          entityIterator = QadLayerEntitySetIterator(limitLayerEntitySet)
          for entity in entityIterator:
-            # per ciascuna entità del layer
+            # for each entity in the layer
             f = entity.getFeature()
             if f is None:
                continue
             
             qadGeom = entity.getQadGeom()
             if geom.whatIs() == "POINT":
-               # la funzione ritorna una lista con 
-               # (<minima distanza>
-               #  <punto più vicino>
-               #  <indice della geometria più vicina>
-               #  <indice della sotto-geometria più vicina>
-               #  <indice della parte della sotto-geometria più vicina>
-               #  <"a sinistra di" se il punto é alla sinista della parte con i seguenti valori:
-               #  -   < 0 = sinistra (per linea, arco o arco di ellisse) o interno (per cerchi, ellissi)
-               #  -   > 0 = destra (per linea, arco o arco di ellisse) o esterno (per cerchi, ellissi)
+               # the function returns a list with 
+               # (<minimum distance>
+               #  <closest point>
+               #  <index of the closest geometry>
+               #  <index of the closest sub-geometry>
+               #  <index of the part of the closest sub-geometry>
+               #  <"to the left of" if the point is to the left of the part with the following values:
+               #  -   < 0 = left (for line, arc or elliptical arc) or inside (for circles, ellipses)
+               #  -   > 0 = right (for line, arc or elliptical arc) or outside (for circles, ellipses)
                # )
                result = getQadGeomClosestPart(qadGeom, geom)
                intPts = [result[1]]
@@ -143,9 +143,9 @@ class QadEXTENDCommandClass(QadCommandClass):
                   newGeom = extendQadGeometry(qadGeom, intPt, \
                                               self.limitEntitySet, self.edgeMode)
                   if newGeom is not None:
-                     # aggiorno la feature con la geometria estesa
+                     # update the feature with the extended geometry
                      extendedFeature = QgsFeature(f)
-                     # trasformo la geometria nel crs del layer
+                     # transform the geometry to the layer's CRS
                      extendedFeature.setGeometry(fromQadGeomToQgsGeom(newGeom, layer))
                      # plugIn, layer, feature, refresh, check_validity
                      if qad_layer.updateFeatureToLayer(self.plugIn, layer, extendedFeature, False, False) == False:
@@ -166,7 +166,7 @@ class QadEXTENDCommandClass(QadCommandClass):
                            return
                            
                         trimmedFeature1 = QgsFeature(f)
-                        # trasformo la geometria nel crs del layer
+                        # transform the geometry to the layer's CRS
                         trimmedFeature1.setGeometry(fromQadGeomToQgsGeom(newQadGeom, layer))
                         # plugIn, layer, feature, refresh, check_validity
                         if qad_layer.updateFeatureToLayer(self.plugIn, layer, trimmedFeature1, False, False) == False:
@@ -174,7 +174,7 @@ class QadEXTENDCommandClass(QadCommandClass):
                            return
                         if line2 is not None:
                            trimmedFeature2 = QgsFeature(f)      
-                           # trasformo la geometria nel crs del layer
+                           # transform the geometry to the layer's CRS
                            trimmedFeature2.setGeometry(fromQadGeomToQgsGeom(line2, layer))
                            # plugIn, layer, feature, coordTransform, refresh, check_validity
                            if qad_layer.addFeatureToLayer(self.plugIn, layer, trimmedFeature2, None, False, False, False) == False:
@@ -182,7 +182,7 @@ class QadEXTENDCommandClass(QadCommandClass):
                               return
                         
                      else:
-                        # aggiungo le linee nei layer temporanei di QAD
+                        # add lines to QAD temporary layers
                         if LineTempLayer is None:
                            LineTempLayer = qad_layer.createQADTempLayer(self.plugIn, QgsWkbTypes.LineGeometry)
                            self.plugIn.addLayerToLastEditCommand("Feature trimmed", LineTempLayer)
@@ -191,20 +191,20 @@ class QadEXTENDCommandClass(QadCommandClass):
                         if line2 is not None:
                            lineGeoms.append(line2)
 
-                        # trasformo la geometria in quella dei layer temporanei
+                        # transform the geometry to temporary layers
                         # plugIn, pointGeoms, lineGeoms, polygonGeoms, coord, refresh
                         if qad_layer.addGeometriesToQADTempLayers(self.plugIn, None, lineGeoms, None, None, False) == False:
                            self.plugIn.destroyEditCommand()
                            return
                                                       
-                        if delQadGeomAt(qadGeom, atGeom, atSubGeom) == False or updGeom.isEmpty(): # da cancellare
+                        if delQadGeomAt(qadGeom, atGeom, atSubGeom) == False or updGeom.isEmpty(): # to be deleted
                            # plugIn, layer, feature id, refresh
                            if qad_layer.deleteFeatureToLayer(self.plugIn, layer, f.id(), False) == False:
                               self.plugIn.destroyEditCommand()
                               return
                         else:
                            trimmedFeature1 = QgsFeature(f)
-                           # trasformo la geometria nel crs del layer
+                           # transform the geometry to the layer's CRS
                            trimmedFeature1.setGeometry(fromQadGeomToQgsGeom(qadGeom, layer))
                            # plugIn, layer, feature, refresh, check_validity
                            if qad_layer.updateFeatureToLayer(self.plugIn, layer, trimmedFeature1, False, False) == False:
@@ -220,11 +220,11 @@ class QadEXTENDCommandClass(QadCommandClass):
    # ============================================================================
    def waitForObjectSel(self):      
       self.step = 2      
-      # imposto il map tool
+      # set the map tool
       self.getPointMapTool().setSelectionMode(QadGetPointSelectionModeEnum.ENTITY_SELECTION_DYNAMIC)
-      # solo layer lineari editabili che non appartengano a quote
+      # only editable linear layers that don't belong to dimensions
       layerList = []
-      for layer in qad_utils.getVisibleVectorLayers(self.plugIn.canvas): # Tutti i layer vettoriali visibili
+      for layer in qad_utils.getVisibleVectorLayers(self.plugIn.canvas): # All visible vector layers
          if layer.geometryType() == QgsWkbTypes.LineGeometry and layer.isEditable():
             if len(QadDimStyles.getDimListByLayer(layer)) == 0:
                layerList.append(layer)
@@ -241,8 +241,8 @@ class QadEXTENDCommandClass(QadCommandClass):
       
       englishKeyWords = "Fence" + "/" + "Crossing" + "/" + "Edge" + "/" + "Undo"
       keyWords += "_" + englishKeyWords
-      # si appresta ad attendere un punto o enter o una parola chiave         
-      # msg, inputType, default, keyWords, nessun controllo
+      # prepares to wait for a point or enter or a keyword         
+      # msg, inputType, default, keyWords, no check
       self.waitFor(prompt, \
                    QadInputTypeEnum.POINT2D | QadInputTypeEnum.KEYWORDS, \
                    None, \
@@ -255,13 +255,13 @@ class QadEXTENDCommandClass(QadCommandClass):
    def run(self, msgMapTool = False, msg = None):
       if self.plugIn.canvas.mapSettings().destinationCrs().isGeographic():
          self.showMsg(QadMsg.translate("QAD", "\nThe coordinate reference system of the project must be a projected coordinate system.\n"))
-         return True # fine comando
+         return True # end command
 
       # =========================================================================
-      # RICHIESTA SELEZIONE OGGETTI LIMITI
-      if self.step == 0: # inizio del comando
+      # REQUEST FOR BOUNDARY OBJECTS SELECTION
+      if self.step == 0: # beginning of the command
          CurrSettingsMsg = QadMsg.translate("QAD", "\nCurrent settings: ")
-         if self.edgeMode == 0: # 0 = nessuna estensione
+         if self.edgeMode == 0: # 0 = no extension
             CurrSettingsMsg = CurrSettingsMsg + QadMsg.translate("Command_EXTEND", "Edge = No extend")
          else:
             CurrSettingsMsg = CurrSettingsMsg + QadMsg.translate("Command_EXTEND", "Edge = Extend")
@@ -270,67 +270,67 @@ class QadEXTENDCommandClass(QadCommandClass):
          self.showMsg(QadMsg.translate("Command_EXTEND", "\nSelect extension limits..."))
          
          if self.SSGetClass.run(msgMapTool, msg) == True:
-            # selezione terminata
+            # selection completed
             self.step = 1
             return self.run(msgMapTool, msg)        
       
       # =========================================================================
-      # RISPOSTA ALLA SELEZIONE OGGETTI LIMITI
+      # RESPONSE TO BOUNDARY OBJECTS SELECTION
       elif self.step == 1:
          self.limitEntitySet.set(self.SSGetClass.entitySet)
          
          if self.limitEntitySet.count() == 0:
-            return True # fine comando
+            return True # end command
 
-         # si appresta ad attendere la selezione degli oggetti da estendere/tagliare
+         # prepares to wait for the selection of objects to extend/trim
          self.waitForObjectSel()
          return False
       
       # =========================================================================
-      # RISPOSTA ALLA SELEZIONE OGGETTI DA ESTENDERE
+      # RESPONSE TO SELECTION OF OBJECTS TO EXTEND
       elif self.step == 2:
-         if msgMapTool == True: # il punto arriva da una selezione grafica
-            # la condizione seguente si verifica se durante la selezione di un punto
-            # é stato attivato un altro plugin che ha disattivato Qad
-            # quindi stato riattivato il comando che torna qui senza che il maptool
-            # abbia selezionato un punto            
-            if self.getPointMapTool().point is None: # il maptool é stato attivato senza un punto
-               if self.getPointMapTool().rightButton == True: # se usato il tasto destro del mouse
-                  return True # fine comando
+         if msgMapTool == True: # the point comes from a graphic selection
+            # the following condition occurs if during the selection of a point
+            # another plugin was activated that deactivated Qad
+            # then the command was reactivated and returns here without the maptool
+            # having selected a point            
+            if self.getPointMapTool().point is None: # the maptool was activated without a point
+               if self.getPointMapTool().rightButton == True: # if using the right mouse button
+                  return True # end command
                else:
-                  self.setMapTool(self.getPointMapTool()) # riattivo il maptool
+                  self.setMapTool(self.getPointMapTool()) # reactivate the maptool
                   return False
             else:
                value = self.getPointMapTool().point
-         else: # il punto arriva come parametro della funzione
+         else: # the point arrives as a parameter of the function
             value = msg
 
          if type(value) == unicode:
             if value == QadMsg.translate("Command_EXTEND", "Fence") or value == "Fence":
-               # Seleziona tutti gli oggetti che intersecano una polilinea
+               # Select all objects that intersect a polyline
                self.PLINECommand = QadPLINECommandClass(self.plugIn)
-               # se questo flag = True il comando serve all'interno di un altro comando per disegnare una linea
-               # che non verrà salvata su un layer
+               # if this flag = True, the command is used inside another command to draw a line
+               # that will not be saved on a layer
                self.PLINECommand.virtualCmd = True   
                self.PLINECommand.run(msgMapTool, msg)
                self.step = 3
                return False               
             elif value == QadMsg.translate("Command_EXTEND", "Crossing") or value == "Crossing":
-               # Seleziona tutti gli oggetti che intersecano un rettangolo                                  
+               # Select all objects that intersect a rectangle                                  
                self.RECTANGLECommand = QadRECTANGLECommandClass(self.plugIn)
-               # se questo flag = True il comando serve all'interno di un altro comando per disegnare una linea
-               # che non verrà salvata su un layer
+               # if this flag = True, the command is used inside another command to draw a line
+               # that will not be saved on a layer
                self.RECTANGLECommand.virtualCmd = True   
                self.RECTANGLECommand.run(msgMapTool, msg)
                self.step = 4
                return False               
             elif value == QadMsg.translate("Command_EXTEND", "Edge") or value == "Edge":
-               # Per estendere un oggetto usando anche le estensioni degli oggetti di riferimento
-               # vedi variabile EDGEMODE
+               # To extend an object using also the extensions of reference objects
+               # see variable EDGEMODE
                keyWords = QadMsg.translate("Command_EXTEND", "Extend") + "/" + \
                           QadMsg.translate("Command_EXTEND", "No extend")                                              
 
-               if self.edgeMode == 0: # 0 = nessuna estensione
+               if self.edgeMode == 0: # 0 = no extension
                   self.defaultValue = QadMsg.translate("Command_EXTEND", "No extend")
                else: 
                   self.defaultValue = QadMsg.translate("Command_EXTEND", "Extend")                   
@@ -338,8 +338,8 @@ class QadEXTENDCommandClass(QadCommandClass):
                    
                englishKeyWords = "Extend" + "/" + "No extend"
                keyWords += "_" + englishKeyWords
-               # si appresta ad attendere enter o una parola chiave         
-               # msg, inputType, default, keyWords, nessun controllo
+               # prepares to wait for enter or a keyword         
+               # msg, inputType, default, keyWords, no check
                self.waitFor(prompt, \
                             QadInputTypeEnum.KEYWORDS, \
                             self.defaultValue, \
@@ -352,17 +352,17 @@ class QadEXTENDCommandClass(QadCommandClass):
                   self.plugIn.undoEditCommand()
                else:
                   self.showMsg(QadMsg.translate("QAD", "\nThe command has been canceled."))
-         elif type(value) == QgsPointXY: # se é stato selezionato un punto
+         elif type(value) == QgsPointXY: # if a point has been selected
             self.entitySet.clear()
             if self.getPointMapTool().entity.isInitialized():
                self.entitySet.addEntity(self.getPointMapTool().entity)
                ToExtend = True if self.getPointMapTool().shiftKey == False else False
                self.extendFeatures(QadPoint().set(value), ToExtend)
             else:
-               # cerco se ci sono entità nel punto indicato considerando
-               # solo layer lineari editabili che non appartengano a quote
+               # looking for entities at the indicated point, considering
+               # only editable linear layers that don't belong to dimensions
                layerList = []
-               for layer in qad_utils.getVisibleVectorLayers(self.plugIn.canvas): # Tutti i layer vettoriali visibili
+               for layer in qad_utils.getVisibleVectorLayers(self.plugIn.canvas): # All visible vector layers
                   if layer.geometryType() == QgsWkbTypes.LineGeometry and layer.isEditable():
                      if len(QadDimStyles.getDimListByLayer(layer)) == 0:
                         layerList.append(layer)
@@ -378,27 +378,27 @@ class QadEXTENDCommandClass(QadCommandClass):
                   self.entitySet.addEntity(QadEntity().set(layer, feature.id()))
                   self.extendFeatures(QadPoint().set(value), True)
          else:
-            return True # fine comando
+            return True # end command
          
-         # si appresta ad attendere la selezione degli oggetti da estendere/tagliare
+         # prepares to wait for the selection of objects to extend/trim
          self.waitForObjectSel()
                                           
          return False 
 
       # =========================================================================
-      # RISPOSTA ALLA RICHIESTA PUNTO PER MODALITA' INTERCETTA (da step = 2)
-      elif self.step == 3: # dopo aver atteso un punto si riavvia il comando
+      # RESPONSE TO POINT REQUEST FOR FENCE MODE (from step = 2)
+      elif self.step == 3: # after waiting for a point, restart the command
          if self.PLINECommand.run(msgMapTool, msg) == True:
             if self.PLINECommand.polyline.qty() > 0:
-               if msgMapTool == True: # se la polilinea arriva da una selezione grafica
+               if msgMapTool == True: # if the polyline comes from a graphic selection
                   ToExtend = True if self.getPointMapTool().shiftKey == False else False
                else:
                   ToExtend = True
 
-               # cerco tutte le geometrie passanti per la polilinea considerando
-               # solo layer lineari editabili che non appartengano a quote
+               # looking for all geometries passing through the polyline, considering
+               # only editable linear layers that don't belong to dimensions
                layerList = []
-               for layer in qad_utils.getVisibleVectorLayers(self.plugIn.canvas): # Tutti i layer vettoriali visibili
+               for layer in qad_utils.getVisibleVectorLayers(self.plugIn.canvas): # All visible vector layers
                   if layer.geometryType() == QgsWkbTypes.LineGeometry and layer.isEditable():
                      if len(QadDimStyles.getDimListByLayer(layer)) == 0:
                         layerList.append(layer)
@@ -409,25 +409,25 @@ class QadEXTENDCommandClass(QadCommandClass):
             del self.PLINECommand
             self.PLINECommand = None
 
-            # si appresta ad attendere la selezione degli oggetti da estendere/tagliare
+            # prepares to wait for the selection of objects to extend/trim
             self.waitForObjectSel()                                 
-            self.getPointMapTool().refreshSnapType() # aggiorno lo snapType che può essere variato dal maptool di pline                     
+            self.getPointMapTool().refreshSnapType() # update snapType which may have been changed by the pline maptool                     
          return False
 
       # =========================================================================
-      # RISPOSTA ALLA RICHIESTA PUNTO PER MODALITA' INTERSECA (da step = 2)
-      elif self.step == 4: # dopo aver atteso un punto si riavvia il comando
+      # RESPONSE TO POINT REQUEST FOR CROSSING MODE (from step = 2)
+      elif self.step == 4: # after waiting for a point, restart the command
          if self.RECTANGLECommand.run(msgMapTool, msg) == True:            
             if self.RECTANGLECommand.polyline.qty() > 0:
-               if msgMapTool == True: # se la polilinea arriva da una selezione grafica
+               if msgMapTool == True: # if the polyline comes from a graphic selection
                   ToExtend = True if self.getPointMapTool().shiftKey == False else False
                else:
                   ToExtend = True
                
-               # cerco tutte le geometrie passanti per il rettangolo considerando
-               # solo layer lineari editabili che non appartengano a quote
+               # looking for all geometries passing through the rectangle, considering
+               # only editable linear layers that don't belong to dimensions
                layerList = []
-               for layer in qad_utils.getVisibleVectorLayers(self.plugIn.canvas): # Tutti i layer vettoriali visibili
+               for layer in qad_utils.getVisibleVectorLayers(self.plugIn.canvas): # All visible vector layers
                   if layer.geometryType() == QgsWkbTypes.LineGeometry and layer.isEditable():
                      if len(QadDimStyles.getDimListByLayer(layer)) == 0:
                         layerList.append(layer)
@@ -438,25 +438,25 @@ class QadEXTENDCommandClass(QadCommandClass):
             del self.RECTANGLECommand
             self.RECTANGLECommand = None
 
-            # si appresta ad attendere la selezione degli oggetti da estendere/tagliare
+            # prepares to wait for the selection of objects to extend/trim
             self.waitForObjectSel()                                 
-            self.getPointMapTool().refreshSnapType() # aggiorno lo snapType che può essere variato dal maptool di rectangle                   
+            self.getPointMapTool().refreshSnapType() # update snapType which may have been changed by the rectangle maptool                   
          return False
 
       # =========================================================================
-      # RISPOSTA ALLA RICHIESTA DI TIPO DI ESTENSIONE (da step = 2)
-      elif self.step == 5: # dopo aver atteso un punto o un numero reale si riavvia il comando
-         if msgMapTool == True: # il punto arriva da una selezione grafica
-            # la condizione seguente si verifica se durante la selezione di un punto
-            # é stato attivato un altro plugin che ha disattivato Qad
-            # quindi stato riattivato il comando che torna qui senza che il maptool
-            # abbia selezionato un punto            
-            if self.getPointMapTool().rightButton == True: # se usato il tasto destro del mouse
+      # RESPONSE TO EXTENSION TYPE REQUEST (from step = 2)
+      elif self.step == 5: # after waiting for a point or a real number, restart the command
+         if msgMapTool == True: # the point comes from a graphic selection
+            # the following condition occurs if during the selection of a point
+            # another plugin was activated that deactivated Qad
+            # then the command was reactivated and returns here without the maptool
+            # having selected a point            
+            if self.getPointMapTool().rightButton == True: # if using the right mouse button
                value = self.defaultValue 
             else:
-               self.setMapTool(self.getPointMapTool()) # riattivo il maptool
+               self.setMapTool(self.getPointMapTool()) # reactivate the maptool
                return False
-         else: # il valore arriva come parametro della funzione
+         else: # the value arrives as a parameter of the function
             value = msg
 
          if type(value) == unicode:
@@ -464,13 +464,13 @@ class QadEXTENDCommandClass(QadCommandClass):
                self.edgeMode = 0
                QadVariables.set(QadMsg.translate("Environment variables", "EDGEMODE"), self.edgeMode)
                QadVariables.save()
-               # si appresta ad attendere la selezione degli oggetti da estendere/tagliare
+               # prepares to wait for the selection of objects to extend/trim
                self.waitForObjectSel()
             elif value == QadMsg.translate("Command_EXTEND", "Extend") or value == "Extend":
                self.edgeMode = 1
                QadVariables.set(QadMsg.translate("Environment variables", "EDGEMODE"), self.edgeMode)
                QadVariables.save()
-               # si appresta ad attendere la selezione degli oggetti da estendere/tagliare
+               # prepares to wait for the selection of objects to extend/trim
                self.waitForObjectSel()
          
          return False
