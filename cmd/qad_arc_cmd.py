@@ -6,7 +6,7 @@
  ARC command to draw an arc
  
                               -------------------
-        begin                : 2025-05-07
+        last update          : 2025-05-07
         copyright            : iiiii
         email                : brad@blackruby.dev
         developers           : Brad, ClaudeAI
