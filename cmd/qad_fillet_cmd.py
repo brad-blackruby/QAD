@@ -6,8 +6,8 @@
  Command FILLET to round and fillet edges between two graphic objects
  
                               -------------------
-        begin                : 2014-01-30
-        copyright            : (C) 2014
+        last update          : 2025-05-15
+        copyright            : iiiiii
         email                : brad@blackruby.dev
         developers           : Brad, ClaudeAI
  ***************************************************************************/
