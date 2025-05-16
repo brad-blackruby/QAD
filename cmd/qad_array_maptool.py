@@ -6,7 +6,7 @@
  Class to manage the map tool in the context of the array command
  
                               -------------------
-        begin                : 2025-05-10
+        last update          : 2025-05-10
         copyright            : iiiii
         email                : brad@blackruby.dev
         developers           : Brad, ClaudeAI
