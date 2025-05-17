@@ -3,13 +3,13 @@
 /***************************************************************************
  QAD Quantum Aided Design plugin
 
- classe per gestire il map tool in ambito del comando lengthen
+ Class to manage the map tool for the lengthen command
  
                               -------------------
-        begin                : 2015-10-06
+        last updat           : 2025-05-17
         copyright            : iiiii
-        email                : hhhhh
-        developers           : bbbbb aaaaa ggggg
+        email                : brad@blackruby.dev
+        developers           : Brad, ClaudeAI
  ***************************************************************************/
 
 /***************************************************************************
@@ -38,23 +38,24 @@ from ..qad_multi_geom import getQadGeomAt, fromQadGeomToQgsGeom
 from ..qad_snapper import QadSnapTypeEnum
 
 
+# ########## BEGIN SEGMENT 1 ##########
 # ===============================================================================
 # Qad_lengthen_maptool_ModeEnum class.
 # ===============================================================================
 class Qad_lengthen_maptool_ModeEnum():
-   # si richiede la selezione dell'oggetto da misurare
+   # requesting the selection of the object to measure
    ASK_FOR_OBJ_TO_MISURE = 1
-   # si richiede il delta
+   # requesting the delta
    ASK_FOR_DELTA = 2
-   # non si richiede niente
+   # nothing is requested
    NONE = 3
-   # si richiede la selezione dell'oggetto da allungare
+   # requesting the selection of the object to lengthen
    ASK_FOR_OBJ_TO_LENGTHEN = 4
-   # si richiede la percentuale 
+   # requesting the percentage
    ASK_FOR_PERCENT = 5
-   # si richiede il totale
+   # requesting the total
    ASK_FOR_TOTAL = 6
-   # si richiede il nuovo punto dell'estremità in modalità dinamica
+   # requesting the new endpoint in dynamic mode
    ASK_FOR_DYNAMIC_POINT = 7
 
 # ===============================================================================
@@ -65,8 +66,8 @@ class Qad_lengthen_maptool(QadGetPoint):
    def __init__(self, plugIn):
       QadGetPoint.__init__(self, plugIn)
 
-      self.OpMode = None # "DElta" o "Percent" o "Total" o "DYnamic"
-      self.OpType = None # "length" o "Angle"
+      self.OpMode = None # "DElta" or "Percent" or "Total" or "DYnamic"
+      self.OpType = None # "length" or "Angle"
       self.value = None
       self.tmpLinearObject = None
 
@@ -87,7 +88,7 @@ class Qad_lengthen_maptool(QadGetPoint):
       self.mode = None
 
    def setInfo(self, entity, point):
-      # setta: self.layer, self.tmpLinearObject e self.move_startPt
+      # sets: self.layer, self.tmpLinearObject and self.move_startPt
 
       if self.tmpLinearObject is not None:
          del self.tmpLinearObject
@@ -99,35 +100,34 @@ class Qad_lengthen_maptool(QadGetPoint):
       self.layer = entity.layer
       qadGeom = entity.getQadGeom()
 
-      # la funzione ritorna una lista con 
-      # (<minima distanza>
-      # <punto del vertice più vicino>
-      # <indice della geometria più vicina>
-      # <indice della sotto-geometria più vicina>
-      # <indice della parte della sotto-geometria più vicina>
-      # <indice del vertice più vicino>
+      # the function returns a list with
+      # (<minimum distance>
+      # <closest vertex point>
+      # <index of the closest geometry>
+      # <index of the closest sub-geometry>
+      # <index of the part of the closest sub-geometry>
+      # <index of the closest vertex>
       result = getQadGeomClosestVertex(qadGeom, point)
       self.atGeom = result[2]
       self.tmpLinearObject = getQadGeomAt(qadGeom, self.atGeom, 0).copy()
                   
       if qad_utils.getDistance(self.tmpLinearObject.getStartPt(), point) <= \
          qad_utils.getDistance(self.tmpLinearObject.getEndPt(), point):
-         # si allunga dal punto iniziale
+         # lengthening from start point
          self.move_startPt = True
       else:
-         # si allunga dal punto finale
+         # lengthening from end point
          self.move_startPt = False
 
       return True
 
-
-   def canvasMoveEvent(self, event):
+  def canvasMoveEvent(self, event):
       QadGetPoint.canvasMoveEvent(self, event)
       
       self.__rubberBand.reset()
       res = False
        
-      # si richiede la selezione dell'oggetto da allungare
+      # requesting the selection of the object to lengthen
       if self.mode == Qad_lengthen_maptool_ModeEnum.ASK_FOR_OBJ_TO_LENGTHEN:
          if self.tmpEntity.isInitialized():
             if self.setInfo(self.tmpEntity, self.tmpPoint) == False:
@@ -152,7 +152,7 @@ class Qad_lengthen_maptool(QadGetPoint):
                         value = self.value - linearObject.totalAngle()
                         res = newTmpLinearObject.lengthen_deltaAngle(self.move_startPt, value)
                
-      # si richiede un punto per la nuova estremità
+      # requesting a point for the new endpoint
       elif self.mode == Qad_lengthen_maptool_ModeEnum.ASK_FOR_DYNAMIC_POINT:
          newTmpLinearObject = self.tmpLinearObject.copy()
          
@@ -186,7 +186,7 @@ class Qad_lengthen_maptool(QadGetPoint):
          else:
             res = True
       
-      if res == False: # allungamento impossibile
+      if res == False: # impossible lengthening
          return
       geom = fromQadGeomToQgsGeom(newTmpLinearObject, self.layer)
       self.__rubberBand.addGeometry(geom, self.layer)
@@ -197,7 +197,7 @@ class Qad_lengthen_maptool(QadGetPoint):
       self.__rubberBand.show()          
 
    def deactivate(self):
-      try: # necessario perché se si chiude QGIS parte questo evento nonostante non ci sia più l'oggetto maptool !
+      try: # necessary because if QGIS is closed this event fires despite the maptool object no longer existing!
          QadGetPoint.deactivate(self)
          self.__rubberBand.hide()
       except:
@@ -206,13 +206,13 @@ class Qad_lengthen_maptool(QadGetPoint):
    def setMode(self, mode):
       self.mode = mode
 
-      # si richiede la selezione dell'oggetto da misurare
+      # requesting the selection of the object to measure
       if self.mode == Qad_lengthen_maptool_ModeEnum.ASK_FOR_OBJ_TO_MISURE:
          self.setSelectionMode(QadGetPointSelectionModeEnum.ENTITY_SELECTION)
 
-         # solo layer di tipo lineari che non appartengano a quote o di tipo poligono 
+         # only linear layers that don't belong to dimensions or polygon type
          layerList = []
-         for layer in qad_utils.getVisibleVectorLayers(self.plugIn.canvas): # Tutti i layer vettoriali visibili
+         for layer in qad_utils.getVisibleVectorLayers(self.plugIn.canvas): # All visible vector layers
             if layer.geometryType() == QgsWkbTypes.LineGeometry or layer.geometryType() == QgsWkbTypes.PolygonGeometry:
                if len(QadDimStyles.getDimListByLayer(layer)) == 0:
                   layerList.append(layer)
@@ -220,20 +220,20 @@ class Qad_lengthen_maptool(QadGetPoint):
          self.layersToCheck = layerList
          self.onlyEditableLayers = False
          self.setSnapType(QadSnapTypeEnum.DISABLE)
-      # si richiede il delta
+      # requesting the delta
       elif self.mode == Qad_lengthen_maptool_ModeEnum.ASK_FOR_DELTA:
          self.OpMode = "DElta"
          self.setSelectionMode(QadGetPointSelectionModeEnum.POINT_SELECTION)
-      # non si richiede niente
+      # nothing is requested
       elif self.mode == Qad_lengthen_maptool_ModeEnum.NONE:
          self.setSelectionMode(QadGetPointSelectionModeEnum.POINT_SELECTION)   
-      # si richiede la selezione dell'oggetto da allungare
+      # requesting the selection of the object to lengthen
       elif self.mode == Qad_lengthen_maptool_ModeEnum.ASK_FOR_OBJ_TO_LENGTHEN:
          self.setSelectionMode(QadGetPointSelectionModeEnum.ENTITY_SELECTION_DYNAMIC)
 
-         # solo layer lineari editabili che non appartengano a quote
+         # only editable linear layers that don't belong to dimensions
          layerList = []
-         for layer in qad_utils.getVisibleVectorLayers(self.plugIn.canvas): # Tutti i layer vettoriali visibili
+         for layer in qad_utils.getVisibleVectorLayers(self.plugIn.canvas): # All visible vector layers
             if layer.geometryType() == QgsWkbTypes.LineGeometry and layer.isEditable():
                if len(QadDimStyles.getDimListByLayer(layer)) == 0:
                   layerList.append(layer)
@@ -241,15 +241,15 @@ class Qad_lengthen_maptool(QadGetPoint):
          self.layersToCheck = layerList
          self.onlyEditableLayers = True
          self.setSnapType(QadSnapTypeEnum.DISABLE)
-      # si richiede la percentuale
+      # requesting the percentage
       elif self.mode == Qad_lengthen_maptool_ModeEnum.ASK_FOR_PERCENT:
          self.setSelectionMode(QadGetPointSelectionModeEnum.POINT_SELECTION) 
          self.OpMode = "Percent"
-      # si richiede il totale
+      # requesting the total
       elif self.mode == Qad_lengthen_maptool_ModeEnum.ASK_FOR_TOTAL:
          self.OpMode = "Total"
          self.setSelectionMode(QadGetPointSelectionModeEnum.POINT_SELECTION)
-      # si richiede il nuovo punto dell'estremità in modalità dinamica
+      # requesting the new endpoint in dynamic mode
       elif self.mode == Qad_lengthen_maptool_ModeEnum.ASK_FOR_DYNAMIC_POINT:
          self.OpMode = "DYnamic"
          self.setSelectionMode(QadGetPointSelectionModeEnum.POINT_SELECTION)
