@@ -6,7 +6,7 @@
  LENGTHEN command to extend an object
  
                               -------------------
-        begin                : 2015-10-05
+        last update          : 2025-05-17
         copyright            : iiiii
         email                : brad@blackruby.dev
         developers           : Brad, ClaudeAI
